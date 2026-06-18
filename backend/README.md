@@ -20,3 +20,6 @@ Dashboard<br>
 3) Applied History
 4) Category
 5) Admin
+
+## Database Integration
+* 

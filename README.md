@@ -22,5 +22,6 @@ It uses corn job to automate the scraping process and dirctly fetch user schedul
 2) Express.jS
 3) Supabase
 4) Playwrite
+5) Infisical
 </div>
 
