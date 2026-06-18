@@ -15,10 +15,12 @@
   "dependencies": {
     "@infisical/sdk": "^5.0.2",
     "@supabase/supabase-js": "^2.108.2",
+    "cheerio": "^1.2.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "playwright": "^1.61.0"
   },
   "devDependencies": {
     "supabase": "^2.108.0-beta.4"

@@ -24,4 +24,3 @@ It uses corn job to automate the scraping process and dirctly fetch user schedul
 4) Playwrite
 5) Infisical
 </div>
-
