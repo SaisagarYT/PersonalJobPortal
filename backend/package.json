@@ -15,6 +15,7 @@
   "dependencies": {
     "@infisical/sdk": "^5.0.2",
     "@supabase/supabase-js": "^2.108.2",
+    "axios": "^1.18.0",
     "cheerio": "^1.2.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",

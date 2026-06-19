@@ -2,10 +2,12 @@ import express from 'express';
 import dotenv from 'dotenv';
 import supabase from './config/supabase.js';
 import client from './config/infisical.js';
+import oppertunityRoute from './routes/oppertunity.route.js';
 dotenv.config();
 
 
 const app = express();
+app.use(express.json());
 
 app.get('/supabase',async(req,res) =>{
     try{
@@ -30,6 +32,8 @@ app.get('/',async(req,res) =>{
         message:"Backend is live"
     });
 })
+
+app.use('/api/oppertunity',oppertunityRoute);
 
 const port = process.env.PORT;
 app.listen(port,() =>{
