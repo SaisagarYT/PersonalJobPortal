@@ -3,7 +3,7 @@ import unstopFetchOppertunities from "../controllers/oppertunity.controller.js";
 
 const route = express.Router();
 
-route.post('/internships',unstopFetchOppertunities);
+route.post('/oppertunities',unstopFetchOppertunities);
 
 export default route;
 

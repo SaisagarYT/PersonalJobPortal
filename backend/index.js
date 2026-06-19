@@ -33,7 +33,7 @@ app.get('/',async(req,res) =>{
     });
 })
 
-app.use('/api/oppertunity',oppertunityRoute);
+app.use('/api/v1',oppertunityRoute);
 
 const port = process.env.PORT;
 app.listen(port,() =>{

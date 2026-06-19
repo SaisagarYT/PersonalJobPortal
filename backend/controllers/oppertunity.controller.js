@@ -1,13 +1,17 @@
-import unstopInternshipFetch from "../scrapers/unstop.js";
+import unstopOppertunities from "../scrapers/unstop.js";
 import {load} from 'cheerio';
 const unstopFetchOppertunities = async(req,res) =>{
-    const {page,pagination, role} = req.body;
+    const {page,pagination,role,userType} = req.body;
 
-    page == ""? page = 1 : page;
-    pagination == ""? pagination = 18 : pagination;
+    page == undefined? page = 1 : page;
+    pagination == undefined? pagination = 18 : pagination;
+    role == ""? role = "ai-engineer" : role
+    userType == ""? "students": userType
+    console.log(page,pagination,role,userType);
     
     try{
-        const internshipData = await unstopInternshipFetch(page,pagination,role);
+        const internshipData = await unstopOppertunities(page,pagination,role,userType);
+        console.log(internshipData);
         const jobs = internshipData.data.data.map((job) =>({
             externalId:job.id,
             title:job.title,
