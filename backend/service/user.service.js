@@ -1,2 +1,1 @@
-import supabase from "../config/supabase.js";
-
+// User service - to be implemented

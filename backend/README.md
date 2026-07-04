@@ -3,26 +3,28 @@
 ## Backend Flow
 
 Data Sources <br>
-    ↓ <br>
+↓ <br>
 Scrapers<br>
-    ↓<br>
+↓<br>
 Scheduler<br>
-    ↓<br>
+↓<br>
 Storage<br>
-    ↓<br>
+↓<br>
 API<br>
-    ↓<br>
+↓<br>
 Dashboard<br>
 
 ## Models
-1) User
-2) Oppertunity
-3) Applied History
-4) Category
-5) Admin
+
+1. User
+2. Opportunity
+3. Applied History
+4. Category
+5. Admin
 
 ## Database Integration
-> Integrated Supabase to backend in the file <b>supabase.js</b>  using the credentials demanded and connected the supabase postgresql locally using supabase connection string and session pooler (default IPV4) to the DataGrip IDE from Jetbrains.
+
+> Integrated Supabase to backend in the file <b>supabase.js</b> using the credentials demanded and connected the supabase postgresql locally using supabase connection string and session pooler (default IPV4) to the DataGrip IDE from Jetbrains.
 
 <code>
 
@@ -36,6 +38,7 @@ Dashboard<br>
 </code>
 
 ## Infisical Integration
+
 > The secrets are being handled by Infisical (third-party tool).
 
 <code>
@@ -62,6 +65,6 @@ Dashboard<br>
 </code>
 
 ## Feature/unstop-scraper
-* unstopFetchOppertunities (Filters -> role, userType, pagination)
 
-
+- unstopFetchOpportunities (Filters -> role, userType, pagination)
+- saveUnstopOpportunitiesInHistory (Saves the applied opportunity in history)
