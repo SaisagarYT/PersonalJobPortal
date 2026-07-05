@@ -113,12 +113,15 @@ app.get('/supabase', async (req, res, next) => {
 // API Routes
 // ======================
 
+// Public routes first — no auth required
 app.use('/api/v1', authRoute);
+app.use('/api/v1', opportunityRoute);
+app.use('/api/v1', scraperRoute);
+
+// Protected routes — userRoute uses router.use(requireAuth) internally
 app.use('/api/v1', userRoute);
 app.use('/api/v1', applicationRoute);
-app.use('/api/v1', opportunityRoute);
 app.use('/api/v1', wishlistRoute);
-app.use('/api/v1', scraperRoute);
 
 // ======================
 // Error Handlers
