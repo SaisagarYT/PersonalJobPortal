@@ -50,7 +50,6 @@ class OpportunityCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Company logo / initial
                 Container(
                   width: 44,
                   height: 44,
@@ -64,7 +63,7 @@ class OpportunityCard extends StatelessWidget {
                           child: Image.network(
                             o.companyLogo,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _companyInitial(o.companyName),
+                            errorBuilder: (context, err, stack) => _companyInitial(o.companyName),
                           ),
                         )
                       : _companyInitial(o.companyName),
@@ -81,32 +80,37 @@ class OpportunityCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _sourceColor(o.source).withAlpha(26),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          o.source.toUpperCase(),
-                          style: AppTextStyles.monoSm.copyWith(
-                            color: _sourceColor(o.source),
-                            fontWeight: FontWeight.w600,
+                      // Source badge — intrinsic width, won't overflow
+                      IntrinsicWidth(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: _sourceColor(o.source).withAlpha(26),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            o.source.toUpperCase(),
+                            style: AppTextStyles.monoSm.copyWith(
+                              color: _sourceColor(o.source),
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                IconButton(
-                  onPressed: onSave,
-                  icon: Icon(
-                    isSaved ? Icons.bookmark : Icons.bookmark_outline,
-                    color: isSaved ? AppColors.amber : AppColors.grey400,
-                    size: 20,
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: onSave,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(
+                      isSaved ? Icons.bookmark : Icons.bookmark_outline,
+                      color: isSaved ? AppColors.amber : AppColors.grey400,
+                      size: 22,
+                    ),
                   ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
                 ),
               ],
             ),
@@ -121,7 +125,7 @@ class OpportunityCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
 
-            // Chips row: type, salary, location
+            // Chips — Wrap so they never overflow horizontally
             Wrap(
               spacing: 6,
               runSpacing: 4,
@@ -137,29 +141,31 @@ class OpportunityCard extends StatelessWidget {
                   color: o.compensation.isPaid ? AppColors.green : AppColors.grey600,
                 ),
                 if (o.locationDisplay.isNotEmpty)
-                  _chip(o.locationDisplay, icon: Icons.location_on_outlined, color: AppColors.grey600),
+                  _chip(
+                    o.locationDisplay,
+                    icon: Icons.location_on_outlined,
+                    color: AppColors.grey600,
+                  ),
               ],
             ),
+
+            // Skills — Wrap instead of horizontal ListView to avoid overflow
             if (o.skills.isNotEmpty) ...[
               const SizedBox(height: 8),
-              SizedBox(
-                height: 26,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: o.skills.length > 5 ? 5 : o.skills.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 6),
-                  itemBuilder: (_, i) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceVariant,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      o.skills[i],
-                      style: AppTextStyles.bodySmall.copyWith(fontSize: 11),
-                    ),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: o.skills.take(5).map((s) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceVariant,
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                ),
+                  child: Text(
+                    s,
+                    style: AppTextStyles.bodySmall.copyWith(fontSize: 11),
+                  ),
+                )).toList(),
               ),
             ],
           ],
@@ -194,7 +200,14 @@ class OpportunityCard extends StatelessWidget {
         children: [
           Icon(icon, size: 12, color: color),
           const SizedBox(width: 4),
-          Text(label, style: AppTextStyles.bodySmall.copyWith(color: color, fontSize: 12)),
+          Flexible(
+            child: Text(
+              label,
+              style: AppTextStyles.bodySmall.copyWith(color: color, fontSize: 12),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );

@@ -34,26 +34,39 @@ class WishlistBloc extends Bloc<WishlistEvent, WishlistState> {
   }
 
   Future<void> _onSave(WishlistSaveRequested event, Emitter<WishlistState> emit) async {
+    // Optimistic update regardless of current state
+    final current = state;
+    if (current is WishlistLoaded) {
+      emit(current.copyWith(savedIds: {...current.savedIds, event.opportunityId}));
+    } else {
+      // Not loaded yet — emit a minimal loaded state so the bookmark icon updates
+      emit(WishlistLoaded(items: const [], savedIds: {event.opportunityId}));
+    }
     try {
       await _api.dio.post('/wishlist', data: {'opportunity_id': event.opportunityId});
-      final current = state;
-      if (current is WishlistLoaded) {
-        final ids = {...current.savedIds, event.opportunityId};
-        emit(current.copyWith(savedIds: ids));
+    } catch (_) {
+      // Revert on failure
+      final updated = state;
+      if (updated is WishlistLoaded) {
+        final ids = {...updated.savedIds}..remove(event.opportunityId);
+        emit(updated.copyWith(savedIds: ids));
       }
-    } catch (_) {}
+    }
   }
 
   Future<void> _onRemove(WishlistRemoveRequested event, Emitter<WishlistState> emit) async {
+    final current = state;
+    if (current is WishlistLoaded) {
+      final ids = {...current.savedIds}..remove(event.opportunityId);
+      final items = current.items.where((o) => o.id != event.opportunityId).toList();
+      emit(current.copyWith(items: items, savedIds: ids));
+    }
     try {
       await _api.dio.delete('/wishlist', data: {'opportunity_id': event.opportunityId});
-      final current = state;
-      if (current is WishlistLoaded) {
-        final ids = {...current.savedIds}..remove(event.opportunityId);
-        final items = current.items.where((o) => o.id != event.opportunityId).toList();
-        emit(current.copyWith(items: items, savedIds: ids));
-      }
-    } catch (_) {}
+    } catch (_) {
+      // Revert on failure — reload from server
+      add(WishlistLoadRequested());
+    }
   }
 
   bool isSaved(String id) {
