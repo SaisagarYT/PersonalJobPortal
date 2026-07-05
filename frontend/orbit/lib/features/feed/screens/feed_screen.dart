@@ -19,8 +19,6 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  final _scrollCtrl = ScrollController();
-
   static const _types = ['All', 'Internship', 'Job', 'Competition'];
   static const _sources = ['All', 'Unstop', 'Internshala', 'Apna'];
   int _typeIdx = 0;
@@ -29,17 +27,11 @@ class _FeedScreenState extends State<FeedScreen> {
   void initState() {
     super.initState();
     context.read<FeedBloc>().add(FeedLoadRequested());
-    _scrollCtrl.addListener(_onScroll);
   }
 
-  @override
-  void dispose() {
-    _scrollCtrl.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollCtrl.position.pixels >= _scrollCtrl.position.maxScrollExtent - 200) {
+  void _onScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollEndNotification &&
+        notification.metrics.pixels >= notification.metrics.maxScrollExtent - 200) {
       context.read<FeedBloc>().add(FeedLoadMore());
     }
   }
@@ -52,6 +44,7 @@ class _FeedScreenState extends State<FeedScreen> {
           SliverAppBar(
             floating: true,
             snap: true,
+            backgroundColor: AppColors.paper,
             title: Row(children: [
               Container(
                 width: 28,
@@ -75,7 +68,7 @@ class _FeedScreenState extends State<FeedScreen> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.search),
-                onPressed: () {/* search TODO */},
+                onPressed: () {},
               ),
               IconButton(
                 icon: const Icon(Icons.filter_list),
@@ -90,7 +83,7 @@ class _FeedScreenState extends State<FeedScreen> {
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: _types.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  separatorBuilder: (context, index) => const SizedBox(width: 8),
                   itemBuilder: (_, i) => GestureDetector(
                     onTap: () {
                       setState(() => _typeIdx = i);
@@ -157,49 +150,53 @@ class _FeedScreenState extends State<FeedScreen> {
                 );
               }
               return RefreshIndicator(
-                onRefresh: () async {
-                  context.read<FeedBloc>().add(FeedLoadRequested(refresh: true));
-                },
-                child: ListView.builder(
-                  controller: _scrollCtrl,
-                  padding: const EdgeInsets.only(top: 8, bottom: 80),
-                  itemCount: state.opportunities.length + (state.hasMore ? 1 : 0),
-                  itemBuilder: (context, i) {
-                    if (i == state.opportunities.length) {
-                      return const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-                    final opp = state.opportunities[i];
-                    return BlocBuilder<WishlistBloc, WishlistState>(
-                      buildWhen: (prev, next) {
-                        final prevSaved = prev is WishlistLoaded && prev.savedIds.contains(opp.id);
-                        final nextSaved = next is WishlistLoaded && next.savedIds.contains(opp.id);
-                        return prevSaved != nextSaved;
-                      },
-                      builder: (ctx, wState) {
-                        final saved = wState is WishlistLoaded && wState.savedIds.contains(opp.id);
-                        return OpportunityCard(
-                          opportunity: opp,
-                          isSaved: saved,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => JobDetailScreen(opportunity: opp),
-                            ),
-                          ),
-                          onSave: () {
-                            final wb = ctx.read<WishlistBloc>();
-                            if (saved) {
-                              wb.add(WishlistRemoveRequested(opp.id));
-                            } else {
-                              wb.add(WishlistSaveRequested(opp.id));
-                            }
-                          },
-                        );
-                      },
-                    );
+                onRefresh: () async =>
+                    context.read<FeedBloc>().add(FeedLoadRequested(refresh: true)),
+                // NotificationListener handles load-more — no custom ScrollController
+                // needed, so NestedScrollView can manage the SliverAppBar correctly.
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (n) {
+                    _onScrollNotification(n);
+                    return false;
                   },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(top: 8, bottom: 80),
+                    itemCount: state.opportunities.length + (state.hasMore ? 1 : 0),
+                    itemBuilder: (context, i) {
+                      if (i == state.opportunities.length) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      final opp = state.opportunities[i];
+                      // Rebuild this card whenever the wishlist state changes so
+                      // the bookmark icon always reflects the correct saved state.
+                      return BlocBuilder<WishlistBloc, WishlistState>(
+                        builder: (ctx, wState) {
+                          final saved = wState is WishlistLoaded &&
+                              wState.savedIds.contains(opp.id);
+                          return OpportunityCard(
+                            opportunity: opp,
+                            isSaved: saved,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => JobDetailScreen(opportunity: opp),
+                              ),
+                            ),
+                            onSave: () {
+                              final wb = ctx.read<WishlistBloc>();
+                              if (saved) {
+                                wb.add(WishlistRemoveRequested(opp.id));
+                              } else {
+                                wb.add(WishlistSaveRequested(opp.id));
+                              }
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               );
             }
@@ -229,11 +226,14 @@ class _FeedScreenState extends State<FeedScreen> {
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 8,
-                  children: List.generate(_sources.length, (i) => ChoiceChip(
-                    label: Text(_sources[i]),
-                    selected: srcIdx == i,
-                    onSelected: (_) => setSt(() => srcIdx = i),
-                  )),
+                  children: List.generate(
+                    _sources.length,
+                    (i) => ChoiceChip(
+                      label: Text(_sources[i]),
+                      selected: srcIdx == i,
+                      onSelected: (_) => setSt(() => srcIdx = i),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
