@@ -7,6 +7,9 @@ import './config/infisical.js'; // Initialize Infisical
 import opportunityRoute from './routes/opportunity.route.js';
 import wishlistRoute from './routes/wishlist.routes.js';
 import scraperRoute from './routes/scraper.route.js';
+import authRoute from './routes/auth.route.js';
+import userRoute from './routes/user.route.js';
+import applicationRoute from './routes/application.route.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { apiLimiter } from './middleware/security.js';
 import logger from './config/logger.js';
@@ -110,9 +113,12 @@ app.get('/supabase', async (req, res, next) => {
 // API Routes
 // ======================
 
+app.use('/api/v1', authRoute);
+app.use('/api/v1', userRoute);
+app.use('/api/v1', applicationRoute);
 app.use('/api/v1', opportunityRoute);
 app.use('/api/v1', wishlistRoute);
-app.use('/api/v1', scraperRoute); // New multi-source scraping endpoints
+app.use('/api/v1', scraperRoute);
 
 // ======================
 // Error Handlers

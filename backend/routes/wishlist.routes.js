@@ -7,28 +7,30 @@ import {
   displayWishlistSchema,
 } from '../validators/wishlist.validator.js';
 import { writeLimiter, scrapeLimiter } from '../middleware/security.js';
+import requireAuth from '../middleware/auth.js';
 
 const route = express.Router();
 
-// Add to wishlist - write limiter (20 req/min)
+// All wishlist routes require a valid JWT
 route.post(
   '/wishlist',
+  requireAuth,
   writeLimiter,
   validate(saveWishlistSchema),
   wishlistController.wishlistSaveController
 );
 
-// Remove from wishlist - write limiter (20 req/min)
 route.delete(
   '/wishlist',
+  requireAuth,
   writeLimiter,
   validate(removeWishlistSchema),
   wishlistController.wishlistRemoveController
 );
 
-// Display wishlist - scrape limiter (10 req/min) since it scrapes Unstop
 route.post(
   '/wishlist/all',
+  requireAuth,
   scrapeLimiter,
   validate(displayWishlistSchema),
   wishlistController.wishlistDisplayController
