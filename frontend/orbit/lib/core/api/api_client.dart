@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
-const String _baseUrl = 'http://10.16.253.193:5000/api/v1';
+import '../config/app_config.dart';
 
 class ApiClient {
   ApiClient._();
@@ -14,9 +13,9 @@ class ApiClient {
   Dio _buildDio() {
     final d = Dio(
       BaseOptions(
-        baseUrl: _baseUrl,
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 30),
+        baseUrl: AppConfig.apiBaseUrl,
+        connectTimeout: AppConfig.connectTimeout,
+        receiveTimeout: AppConfig.receiveTimeout,
         headers: {'Content-Type': 'application/json'},
       ),
     );
