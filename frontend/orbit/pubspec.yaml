@@ -1,0 +1,58 @@
+name: orbit
+description: "Orbit — Personal Career Operating System"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_bloc: ^9.1.1
+  equatable: ^2.0.7
+
+  # Navigation
+  go_router: ^15.1.2
+
+  # HTTP & API
+  dio: ^5.8.0+1
+  retrofit: ^4.4.2
+
+  # Secure storage (JWT token)
+  flutter_secure_storage: ^9.2.4
+
+  # UI
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+  cached_network_image: ^3.4.1
+
+  # Utils
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.15
+  freezed: ^2.5.8
+  json_serializable: ^6.9.5
+  retrofit_generator: ^9.1.6
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: SpaceGrotesk
+      fonts:
+        - asset: assets/fonts/SpaceGrotesk-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/SpaceGrotesk-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/SpaceGrotesk-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/SpaceGrotesk-Bold.ttf
+          weight: 700

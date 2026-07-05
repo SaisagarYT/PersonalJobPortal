@@ -1,12 +1,11 @@
 import wishlistService from '../service/wishlist.service.js';
 
-// save controller
 const wishlistSaveController = async (req, res, next) => {
   try {
-    // Data already validated by middleware
-    const request = req.body;
+    const user_id = req.user.id; // from verified JWT
+    const { opportunity_id } = req.body;
 
-    await wishlistService.saveWishlist(request);
+    await wishlistService.saveWishlist({ user_id, opportunity_id });
 
     return res.status(201).json({
       success: true,
@@ -17,13 +16,12 @@ const wishlistSaveController = async (req, res, next) => {
   }
 };
 
-// delete controller
 const wishlistRemoveController = async (req, res, next) => {
   try {
-    // Data already validated by middleware
-    const request = req.body;
+    const user_id = req.user.id;
+    const { opportunity_id } = req.body;
 
-    await wishlistService.deleteWishlist(request);
+    await wishlistService.deleteWishlist({ user_id, opportunity_id });
 
     return res.status(200).json({
       success: true,
@@ -34,24 +32,16 @@ const wishlistRemoveController = async (req, res, next) => {
   }
 };
 
-// display controller
 const wishlistDisplayController = async (req, res, next) => {
   try {
-    // Data already validated by middleware
-    const request = req.body;
+    const user_id = req.user.id;
 
-    const response = await wishlistService.displayWishlist(request);
-
-    if (!response) {
-      return res.status(404).json({
-        success: false,
-        message: 'Opportunity not found or failed to fetch details',
-      });
-    }
+    const items = await wishlistService.getWishlist(user_id);
 
     return res.status(200).json({
       success: true,
-      data: response,
+      total: items.length,
+      data: items,
     });
   } catch (err) {
     next(err);
