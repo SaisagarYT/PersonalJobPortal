@@ -3,7 +3,10 @@ import supabase from '../config/supabase.js';
 const saveWishlist = async ({ user_id, opportunity_id }) => {
   const { data, error } = await supabase
     .from('wishlist')
-    .insert([{ user_id, opportunity_id }]);
+    .upsert([{ user_id, opportunity_id }], {
+      onConflict: 'user_id,opportunity_id',
+      ignoreDuplicates: true,
+    });
 
   if (error) throw new Error(error.message);
   return data;
