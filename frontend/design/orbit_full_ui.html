@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Orbit — Career Operating System · Full UI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  :root {
+    --navy:#142844; --navy-2:#1F3A63; --navy-tint:#E7ECF3; --navy-tint-2:#D0DAE9;
+    --amber:#FF8A3D; --amber-deep:#E86A1C; --amber-tint:#FFEFE2;
+    --green:#1A8A5A; --green-tint:#E3F5EE;
+    --red:#D94040; --red-tint:#FCEAEA;
+    --purple:#5B3FA6; --purple-tint:#EDE8F8;
+    --paper:#F6F4EF; --surface:#FFFFFF;
+    --ink:#15191F; --ink-2:#555B66; --ink-3:#9AA0AA; --border:#E8E5DC;
+    --f-display:'Space Grotesk',Arial,sans-serif;
+    --f-body:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    --f-mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:#EDEAE2; font-family:var(--f-body); color:var(--ink); padding:48px 32px 80px;}
+
+  /* ---------- intro ---------- */
+  .intro{max-width:960px; margin:0 auto 56px;}
+  .intro .eyebrow{font-family:var(--f-mono); font-size:12px; letter-spacing:.06em; color:var(--amber-deep); font-weight:600; text-transform:uppercase;}
+  .intro h1{font-family:var(--f-display); font-size:38px; font-weight:700; color:var(--navy); margin:8px 0 10px;}
+  .intro p.lead{font-size:15px; color:var(--ink-2); max-width:600px; line-height:1.65;}
+
+  .styleguide{display:flex; gap:40px; margin-top:36px; flex-wrap:wrap;}
+  .swatches{display:flex; gap:10px; flex-wrap:wrap;}
+  .swatch{width:60px;}
+  .swatch .chip{width:60px; height:60px; border-radius:12px; margin-bottom:6px;}
+  .swatch .label{font-size:10px; font-family:var(--f-mono); color:var(--ink-2);}
+  .swatch .hex{font-size:10px; font-family:var(--f-mono); color:var(--ink-3);}
+  .type-sample{display:flex; flex-direction:column; gap:6px;}
+  .type-sample .ts1{font-family:var(--f-display); font-weight:700; font-size:20px; color:var(--navy);}
+  .type-sample .ts2{font-family:var(--f-body); font-size:14px; color:var(--ink-2);}
+  .type-sample .ts3{font-family:var(--f-mono); font-size:13px; color:var(--ink);}
+  .type-sample .tag{font-size:10px; font-family:var(--f-mono); color:var(--ink-3); text-transform:uppercase; letter-spacing:.05em;}
+
+  /* ---------- section labels ---------- */
+  .section-label{max-width:1600px; margin:0 auto 20px; font-family:var(--f-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--amber-deep); font-weight:600; display:flex; align-items:center; gap:12px;}
+  .section-label::after{content:''; flex:1; height:1px; background:var(--border);}
+
+  /* ---------- gallery ---------- */
+  .gallery{display:flex; gap:32px; flex-wrap:wrap; max-width:1600px; margin:0 auto 56px; justify-content:flex-start;}
+  .frame-block{display:flex; flex-direction:column; align-items:center;}
+  .frame-block .caption{margin-top:14px; font-family:var(--f-display); font-weight:600; font-size:13.5px; color:var(--navy);}
+  .frame-block .caption-sub{font-size:11.5px; color:var(--ink-3); margin-top:2px;}
+
+  /* ---------- phone shell ---------- */
+  .phone{
+    width:320px; height:692px; border:10px solid var(--ink); border-radius:46px;
+    background:var(--paper); overflow:hidden; position:relative;
+    box-shadow:0 16px 40px -8px rgba(20,40,68,.22);
+  }
+  .notch{position:absolute; top:10px; left:50%; transform:translateX(-50%); width:110px; height:20px; background:var(--ink); border-radius:12px; z-index:6;}
+  .screen{position:absolute; inset:0; display:flex; flex-direction:column;}
+  .statusbar{display:flex; justify-content:space-between; align-items:center; padding:15px 22px 2px; font-family:var(--f-body); font-size:12px; font-weight:700; position:relative; z-index:5; flex-shrink:0;}
+  .statusbar i{font-size:11px; margin-left:3px;}
+  .statusbar .right{display:flex; align-items:center;}
+
+  .content{flex:1; overflow:hidden; padding:12px 16px 6px; display:flex; flex-direction:column;}
+  .bottomnav{display:flex; justify-content:space-around; align-items:center; padding:8px 0 14px; border-top:1px solid var(--border); background:var(--surface); flex-shrink:0;}
+  .navitem{display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10px; color:var(--ink-3); font-weight:600;}
+  .navitem.active{color:var(--amber-deep);}
+  .navitem i{font-size:17px;}
+
+  /* ---------- shared components ---------- */
+  .pill{display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:999px; font-size:10px; font-weight:600; white-space:nowrap;}
+  .pill.navy{background:var(--navy-tint); color:var(--navy);}
+  .pill.amber{background:var(--amber-tint); color:var(--amber-deep);}
+  .pill.outline{border:1px solid var(--border); color:var(--ink-2); background:transparent;}
+  .pill.solid-navy{background:var(--navy); color:#fff;}
+  .pill.green{background:var(--green-tint); color:var(--green);}
+  .pill.red{background:var(--red-tint); color:var(--red);}
+  .pill.purple{background:var(--purple-tint); color:var(--purple);}
+
+  .btn-primary{background:var(--amber); color:var(--navy); font-family:var(--f-display); font-weight:700; border:none; border-radius:14px; padding:13px; text-align:center; font-size:14px; cursor:pointer;}
+  .btn-outline{border:1.5px solid var(--navy); color:var(--navy); font-family:var(--f-display); font-weight:600; border-radius:14px; padding:12px; text-align:center; font-size:13.5px; background:transparent;}
+  .btn-sm{background:var(--navy); color:#fff; font-family:var(--f-display); font-weight:600; border-radius:10px; padding:7px 12px; text-align:center; font-size:11.5px;}
+
+  .searchbar{display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 12px; color:var(--ink-3); font-size:12.5px;}
+  .searchbar i{color:var(--ink-3); font-size:13px;}
+
+  .jobcard{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:13px; margin-bottom:10px; position:relative; flex-shrink:0;}
+  .jobcard .top{display:flex; gap:10px; align-items:flex-start;}
+  .jobcard .logo{width:38px; height:38px; border-radius:10px; background:var(--navy-tint); display:flex; align-items:center; justify-content:center; font-family:var(--f-display); font-weight:700; color:var(--navy); font-size:12px; flex-shrink:0;}
+  .jobcard .title{font-family:var(--f-display); font-weight:600; font-size:13px; color:var(--ink); line-height:1.3;}
+  .jobcard .meta{font-size:11.5px; color:var(--ink-2); margin-top:2px;}
+  .jobcard .bookmark{position:absolute; top:13px; right:13px; color:var(--ink-3); font-size:13px;}
+  .jobcard .tagrow{display:flex; gap:5px; margin:8px 0 7px; flex-wrap:wrap;}
+  .jobcard .bottomrow{display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:8px;}
+  .jobcard .salary{font-family:var(--f-mono); font-size:12px; font-weight:600; color:var(--navy);}
+
+  .source-stack{display:flex; align-items:center;}
+  .src-dot{width:16px; height:16px; border-radius:50%; border:2px solid var(--surface); margin-left:-6px; display:flex; align-items:center; justify-content:center; font-size:7px; font-weight:700; color:#fff; font-family:var(--f-mono);}
+  .src-dot:first-child{margin-left:0;}
+
+  .synced-pill{display:inline-flex; align-items:center; gap:7px; background:var(--navy-tint); border-radius:999px; padding:4px 10px 4px 5px; margin-top:7px;}
+  .synced-pill .txt{font-size:10.5px; font-weight:600; color:var(--navy); font-family:var(--f-mono);}
+
+  .section-title{font-family:var(--f-display); font-weight:600; font-size:13px; color:var(--ink); margin:12px 0 8px;}
+  .chiprow{display:flex; gap:6px; overflow:hidden; flex-wrap:nowrap; margin-bottom:4px;}
+
+  .header-row{display:flex; align-items:center; justify-content:space-between;}
+  .avatar{width:32px; height:32px; border-radius:50%; background:var(--navy); color:#fff; font-family:var(--f-display); font-weight:600; font-size:11px; display:flex; align-items:center; justify-content:center;}
+  .iconbtn{width:32px; height:32px; border-radius:50%; background:var(--surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--ink); font-size:12px;}
+
+  .toggle{width:32px; height:18px; border-radius:999px; position:relative; flex-shrink:0;}
+  .toggle.on{background:var(--amber);}
+  .toggle.off{background:var(--border);}
+  .toggle .knob{width:14px; height:14px; border-radius:50%; background:#fff; position:absolute; top:2px;}
+  .toggle.on .knob{right:2px;}
+  .toggle.off .knob{left:2px;}
+
+  .menurow{display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid var(--border);}
+  .menurow .micon{width:30px; height:30px; border-radius:8px; background:var(--navy-tint); color:var(--navy); display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0;}
+  .menurow .mlabel{flex:1; font-size:13px; font-weight:600;}
+  .menurow .msub{font-size:10.5px; color:var(--ink-3);}
+  .menurow .mchev{color:var(--ink-3); font-size:11px;}
+
+  .metric-card{background:var(--navy-tint); border-radius:12px; padding:10px; flex:1; text-align:center;}
+  .metric-card .num{font-family:var(--f-display); font-weight:700; font-size:17px; color:var(--navy);}
+  .metric-card .lbl{font-size:10px; color:var(--ink-2); margin-top:2px;}
+
+  .tabrow{display:flex; gap:14px; border-bottom:1px solid var(--border); margin-bottom:10px;}
+  .tabitem{font-size:12px; font-weight:600; color:var(--ink-3); padding-bottom:8px;}
+  .tabitem.active{color:var(--navy); border-bottom:2px solid var(--amber);}
+
+  .checkrow{display:flex; align-items:center; gap:10px; padding:8px 0;}
+  .checkbox{width:17px; height:17px; border-radius:5px; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:9px; color:#fff; flex-shrink:0;}
+  .checkbox.checked{background:var(--navy); border-color:var(--navy);}
+
+  /* ---------- progress bar ---------- */
+  .progress-track{height:6px; background:var(--border); border-radius:6px; overflow:hidden; width:100%;}
+  .progress-fill{height:100%; border-radius:6px;}
+  .progress-fill.amber{background:var(--amber);}
+  .progress-fill.navy{background:var(--navy);}
+  .progress-fill.green{background:var(--green);}
+  .progress-fill.red{background:var(--red);}
+
+  /* ---------- ring chart (SVG inline) ---------- */
+  .ring-wrap{display:flex; flex-direction:column; align-items:center; justify-content:center;}
+
+  /* ---------- kanban column ---------- */
+  .kanban-col{background:var(--navy-tint); border-radius:12px; padding:8px; flex:1; min-width:0;}
+  .kanban-col .col-head{font-family:var(--f-display); font-weight:700; font-size:10px; color:var(--navy); margin-bottom:7px; text-transform:uppercase; letter-spacing:.04em;}
+  .kanban-item{background:var(--surface); border:1px solid var(--border); border-radius:9px; padding:8px; margin-bottom:6px;}
+  .kanban-item .k-title{font-size:10.5px; font-weight:600; line-height:1.3;}
+  .kanban-item .k-meta{font-size:9.5px; color:var(--ink-3); margin-top:3px;}
+
+  /* ---------- score ring ---------- */
+  .score-ring{position:relative; display:inline-flex; align-items:center; justify-content:center;}
+  .score-ring .inner{position:absolute; text-align:center;}
+  .score-ring .big{font-family:var(--f-display); font-weight:700; font-size:22px; color:var(--navy);}
+  .score-ring .small-lbl{font-size:9px; color:var(--ink-3); font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+
+  /* ---------- streak dots ---------- */
+  .streak-dots{display:flex; gap:4px;}
+  .s-dot{width:10px; height:10px; border-radius:50%;}
+  .s-dot.filled{background:var(--amber);}
+  .s-dot.empty{background:var(--border);}
+  .s-dot.dim{background:var(--navy-tint-2);}
+
+  /* ---------- mini bar chart ---------- */
+  .mini-bars{display:flex; gap:4px; align-items:flex-end; height:36px;}
+  .mini-bar{flex:1; border-radius:4px 4px 0 0; background:var(--navy-tint-2);}
+  .mini-bar.active{background:var(--amber);}
+  .mini-bar.filled{background:var(--navy);}
+
+  /* ---------- info row ---------- */
+  .info-row{display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border);}
+  .info-row .ir-label{font-size:11.5px; color:var(--ink-2);}
+  .info-row .ir-val{font-size:11.5px; font-weight:600; color:var(--ink);}
+
+  /* ---------- alert strip ---------- */
+  .alert-strip{border-radius:10px; padding:9px 11px; display:flex; gap:9px; align-items:flex-start; margin-bottom:8px;}
+  .alert-strip.warn{background:var(--amber-tint); border:1px solid rgba(255,138,61,.25);}
+  .alert-strip.success{background:var(--green-tint); border:1px solid rgba(26,138,90,.2);}
+  .alert-strip.info{background:var(--navy-tint); border:1px solid rgba(20,40,68,.12);}
+  .alert-strip i{font-size:13px; margin-top:1px; flex-shrink:0;}
+  .alert-strip.warn i{color:var(--amber-deep);}
+  .alert-strip.success i{color:var(--green);}
+  .alert-strip.info i{color:var(--navy-2);}
+  .alert-strip .a-title{font-size:11.5px; font-weight:600; color:var(--ink);}
+  .alert-strip .a-sub{font-size:10.5px; color:var(--ink-2); margin-top:1px; line-height:1.4;}
+
+  /* ---------- tag chip ---------- */
+  .skill-tag{display:inline-flex; align-items:center; background:var(--navy-tint); border-radius:8px; padding:4px 8px; font-size:10.5px; font-weight:600; color:var(--navy); margin:2px;}
+  .skill-tag.missing{background:var(--red-tint); color:var(--red);}
+  .skill-tag.present{background:var(--green-tint); color:var(--green);}
+
+  /* ---------- resume version card ---------- */
+  .resume-card{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px; margin-bottom:9px;}
+  .resume-card .r-title{font-family:var(--f-display); font-weight:600; font-size:13px;}
+  .resume-card .r-meta{font-size:10.5px; color:var(--ink-2); margin-top:2px;}
+  .resume-card .r-stats{display:flex; gap:6px; margin-top:9px;}
+  .r-stat{text-align:center; background:var(--navy-tint); border-radius:8px; padding:5px 8px; flex:1;}
+  .r-stat .rn{font-family:var(--f-mono); font-size:13px; font-weight:600; color:var(--navy);}
+  .r-stat .rl{font-size:9.5px; color:var(--ink-3);}
+
+  /* ---------- interview tracker ---------- */
+  .round-item{display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--border);}
+  .round-dot{width:8px; height:8px; border-radius:50%; margin-top:4px; flex-shrink:0;}
+
+  /* ---------- salary band bar ---------- */
+  .salary-band{position:relative; height:28px; background:var(--border); border-radius:6px; overflow:hidden; margin:6px 0;}
+  .salary-band .fill{position:absolute; top:0; bottom:0; background:var(--navy-tint-2); border-radius:6px;}
+  .salary-band .p75{position:absolute; top:0; bottom:0; background:var(--navy);}
+  .salary-band .marker{position:absolute; top:4px; bottom:4px; width:3px; background:var(--amber); border-radius:2px;}
+
+  /* ---------- notification dot ---------- */
+  .notif-dot{width:8px; height:8px; border-radius:50%; background:var(--red); position:absolute; top:2px; right:2px; border:2px solid var(--paper);}
+
+  /* ---------- match score ring ---------- */
+  .match-badge{display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; border:3px solid var(--amber); font-family:var(--f-mono); font-weight:600; font-size:11px; color:var(--navy); background:var(--surface); flex-shrink:0;}
+
+  /* roadmap row */
+  .roadmap-row{display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--border);}
+  .roadmap-dot{width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--f-mono); font-size:9px; font-weight:700; flex-shrink:0;}
+  .roadmap-dot.done{background:var(--green); color:#fff;}
+  .roadmap-dot.active{background:var(--amber); color:var(--navy);}
+  .roadmap-dot.pending{background:var(--border); color:var(--ink-3);}
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <div class="eyebrow">Flutter app · Full UI system · v2</div>
+  <h1>Orbit — Career Operating System</h1>
+  <p class="lead">Every screen your app needs to turn job discovery into a career growth engine. From splash to skill gap analysis, GitHub health to interview tracking — all in the same visual language.</p>
+  <div class="styleguide">
+    <div>
+      <div class="type-sample"><span class="tag">Colors</span></div>
+      <div class="swatches" style="margin-top:10px;">
+        <div class="swatch"><div class="chip" style="background:#142844;"></div><div class="label">Navy</div><div class="hex">#142844</div></div>
+        <div class="swatch"><div class="chip" style="background:#FF8A3D;"></div><div class="label">Amber</div><div class="hex">#FF8A3D</div></div>
+        <div class="swatch"><div class="chip" style="background:#F6F4EF; border:1px solid #E8E5DC;"></div><div class="label">Paper</div><div class="hex">#F6F4EF</div></div>
+        <div class="swatch"><div class="chip" style="background:#1A8A5A;"></div><div class="label">Green</div><div class="hex">#1A8A5A</div></div>
+        <div class="swatch"><div class="chip" style="background:#D94040;"></div><div class="label">Red</div><div class="hex">#D94040</div></div>
+        <div class="swatch"><div class="chip" style="background:#5B3FA6;"></div><div class="label">Purple</div><div class="hex">#5B3FA6</div></div>
+      </div>
+    </div>
+    <div class="type-sample">
+      <span class="tag">Type</span>
+      <div class="ts1">Space Grotesk — headings</div>
+      <div class="ts2">Inter — body & UI text</div>
+      <div class="ts3">IBM Plex Mono — numbers & tags</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 1: ONBOARDING ═══ -->
+<div class="section-label">01 · Onboarding</div>
+<div class="gallery">
+
+  <!-- SPLASH -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--navy);">
+        <div class="statusbar" style="color:#fff;">
+          <span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 32px;">
+          <svg width="80" height="80" viewBox="0 0 84 84">
+            <circle cx="42" cy="42" r="30" fill="none" stroke="#ffffff" stroke-opacity=".14" stroke-width="1.5"/>
+            <circle cx="42" cy="42" r="15" fill="#FF8A3D"/>
+            <circle cx="42" cy="10" r="6" fill="#ffffff" opacity=".9"/>
+            <circle cx="68" cy="54" r="5.5" fill="#ffffff" opacity=".6"/>
+            <circle cx="16" cy="54" r="5.5" fill="#ffffff" opacity=".6"/>
+          </svg>
+          <div style="font-family:var(--f-display); font-weight:700; font-size:30px; color:#fff; margin-top:20px;">Orbit</div>
+          <div style="font-size:13px; color:#C9D2E0; margin-top:6px; text-align:center; line-height:1.55;">Every job board.<br>One career system.</div>
+        </div>
+        <div style="padding:0 22px 28px;">
+          <div class="btn-primary">Get started</div>
+          <div style="text-align:center; font-size:12px; color:#A9B5C8; margin-top:14px;">Already have an account? <span style="color:#fff; font-weight:600;">Sign in</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Splash</div>
+    <div class="caption-sub">Brand moment</div>
+  </div>
+
+  <!-- ONBOARDING — GOALS -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div style="margin-top:8px;">
+            <div style="font-size:10.5px; font-family:var(--f-mono); color:var(--amber-deep); font-weight:600; letter-spacing:.04em;">Step 1 of 3</div>
+            <div style="height:3px; background:var(--border); border-radius:3px; margin:8px 0 16px; overflow:hidden;"><div style="width:33%; height:100%; background:var(--amber); border-radius:3px;"></div></div>
+          </div>
+          <div style="font-family:var(--f-display); font-weight:700; font-size:20px; color:var(--navy); line-height:1.25;">What's your goal<br>right now?</div>
+          <div style="font-size:12.5px; color:var(--ink-2); margin-top:8px; line-height:1.5;">This helps Orbit tailor your feed and suggest the right features first.</div>
+
+          <div style="margin-top:20px; display:flex; flex-direction:column; gap:9px;">
+            <div style="background:var(--navy); border-radius:14px; padding:14px; display:flex; gap:11px; align-items:center;">
+              <div style="width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="fa-solid fa-briefcase" style="color:#fff; font-size:14px;"></i></div>
+              <div><div style="font-family:var(--f-display); font-weight:700; font-size:13px; color:#fff;">Land my first job</div><div style="font-size:11px; color:rgba(255,255,255,.6); margin-top:2px;">Build portfolio, apply widely</div></div>
+              <i class="fa-solid fa-circle-check" style="color:var(--amber); font-size:16px; margin-left:auto;"></i>
+            </div>
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px; display:flex; gap:11px; align-items:center;">
+              <div style="width:34px; height:34px; border-radius:10px; background:var(--navy-tint); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="fa-solid fa-arrow-trend-up" style="color:var(--navy); font-size:14px;"></i></div>
+              <div><div style="font-family:var(--f-display); font-weight:700; font-size:13px;">Switch roles</div><div style="font-size:11px; color:var(--ink-3); margin-top:2px;">Transition to a new field</div></div>
+            </div>
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px; display:flex; gap:11px; align-items:center;">
+              <div style="width:34px; height:34px; border-radius:10px; background:var(--navy-tint); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="fa-solid fa-star" style="color:var(--navy); font-size:14px;"></i></div>
+              <div><div style="font-family:var(--f-display); font-weight:700; font-size:13px;">Level up salary</div><div style="font-size:11px; color:var(--ink-3); margin-top:2px;">Target senior roles, better comp</div></div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:10px 16px 22px;"><div class="btn-primary">Continue</div></div>
+      </div>
+    </div>
+    <div class="caption">Onboarding — Goals</div>
+    <div class="caption-sub">Personalise from day one</div>
+  </div>
+
+  <!-- ONBOARDING — SKILLS -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div style="margin-top:8px;">
+            <div style="font-size:10.5px; font-family:var(--f-mono); color:var(--amber-deep); font-weight:600; letter-spacing:.04em;">Step 2 of 3</div>
+            <div style="height:3px; background:var(--border); border-radius:3px; margin:8px 0 16px; overflow:hidden;"><div style="width:66%; height:100%; background:var(--amber); border-radius:3px;"></div></div>
+          </div>
+          <div style="font-family:var(--f-display); font-weight:700; font-size:20px; color:var(--navy);">What do you build<br>with today?</div>
+          <div style="font-size:12px; color:var(--ink-2); margin-top:7px;">Tap all that apply.</div>
+          <div style="margin-top:16px; display:flex; flex-wrap:wrap; gap:7px;">
+            <span style="background:var(--navy); color:#fff; border-radius:10px; padding:7px 12px; font-size:12px; font-weight:600; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-check" style="font-size:9px;"></i> Flutter</span>
+            <span style="background:var(--navy); color:#fff; border-radius:10px; padding:7px 12px; font-size:12px; font-weight:600; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-check" style="font-size:9px;"></i> Dart</span>
+            <span style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:7px 12px; font-size:12px; font-weight:600; color:var(--ink);">React</span>
+            <span style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:7px 12px; font-size:12px; font-weight:600; color:var(--ink);">Node.js</span>
+            <span style="background:var(--navy); color:#fff; border-radius:10px; padding:7px 12px; font-size:12px; font-weight:600; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-check" style="font-size:9px;"></i> Firebase</span>
+            <span style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:7px 12px; font-size:12px; font-weight:600; color:var(--ink);">Python</span>
+            <span style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:7px 12px; font-size:12px; font-weight:600; color:var(--ink);">Docker</span>
+            <span style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:7px 12px; font-size:12px; font-weight:600; color:var(--ink);">AWS</span>
+            <span style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:7px 12px; font-size:12px; font-weight:600; color:var(--ink);">TypeScript</span>
+            <span style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:7px 12px; font-size:12px; font-weight:600; color:var(--ink);">SQL</span>
+            <span style="background:var(--navy-tint); border:1px dashed var(--navy); border-radius:10px; padding:7px 12px; font-size:12px; font-weight:600; color:var(--navy);">+ Add skill</span>
+          </div>
+          <div class="alert-strip info" style="margin-top:14px;">
+            <i class="fa-solid fa-lightbulb"></i>
+            <div><div class="a-title">3 skills added</div><div class="a-sub">Orbit will compare these against live job data and flag gaps.</div></div>
+          </div>
+        </div>
+        <div style="padding:10px 16px 22px;"><div class="btn-primary">Continue</div></div>
+      </div>
+    </div>
+    <div class="caption">Onboarding — Skills</div>
+    <div class="caption-sub">Seed the skill gap engine</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 2: CORE FEED ═══ -->
+<div class="section-label">02 · Job Discovery</div>
+<div class="gallery">
+
+  <!-- HOME FEED -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div>
+              <div style="font-size:11.5px; color:var(--ink-3);">Good morning</div>
+              <div style="font-family:var(--f-display); font-weight:700; font-size:17px;">Arjun Mehta</div>
+            </div>
+            <div style="display:flex; gap:7px;">
+              <div class="iconbtn" style="position:relative;"><i class="fa-regular fa-bell"></i><span class="notif-dot"></span></div>
+              <div class="avatar">AM</div>
+            </div>
+          </div>
+          <div class="synced-pill">
+            <div class="source-stack">
+              <span class="src-dot" style="background:var(--navy);">L</span>
+              <span class="src-dot" style="background:var(--navy-2);">I</span>
+              <span class="src-dot" style="background:var(--ink-3);">N</span>
+              <span class="src-dot" style="background:var(--amber-deep);">G</span>
+            </div>
+            <span class="txt">342 new jobs · 6 sources</span>
+          </div>
+          <div style="margin-top:12px;" class="searchbar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>Roles, companies, skills...</span>
+          </div>
+          <div class="chiprow" style="margin-top:10px;">
+            <span class="pill amber">Remote</span>
+            <span class="pill outline">Full-time</span>
+            <span class="pill outline">Flutter</span>
+            <span class="pill outline">₹10–20L</span>
+          </div>
+          <div class="section-title">Best matches</div>
+          <div class="jobcard">
+            <span class="bookmark"><i class="fa-regular fa-bookmark"></i></span>
+            <div class="top">
+              <div class="match-badge">91%</div>
+              <div style="margin-left:4px;">
+                <div class="title">Flutter developer</div>
+                <div class="meta">Nimbus Cloud · Bengaluru</div>
+              </div>
+            </div>
+            <div class="tagrow">
+              <span class="pill navy">Remote</span>
+              <span class="pill outline">Full-time</span>
+            </div>
+            <div class="bottomrow">
+              <span class="salary">₹14–20L /yr</span>
+              <span class="pill outline">via LinkedIn</span>
+            </div>
+          </div>
+          <div class="jobcard">
+            <span class="bookmark"><i class="fa-solid fa-bookmark" style="color:var(--amber-deep);"></i></span>
+            <div class="top">
+              <div class="match-badge" style="border-color:var(--navy-tint-2); color:var(--ink-2);">78%</div>
+              <div style="margin-left:4px;">
+                <div class="title">Mobile engineer — Android / Flutter</div>
+                <div class="meta">Lumen Health · Hyderabad</div>
+              </div>
+            </div>
+            <div class="tagrow">
+              <span class="pill navy">Hybrid</span>
+              <span class="pill outline">2–4 yrs</span>
+            </div>
+            <div class="bottomrow">
+              <span class="salary">₹18–26L /yr</span>
+              <span class="pill outline">via Indeed</span>
+            </div>
+          </div>
+        </div>
+        <div class="bottomnav">
+          <div class="navitem active"><i class="fa-solid fa-house"></i>Home</div>
+          <div class="navitem"><i class="fa-solid fa-magnifying-glass"></i>Search</div>
+          <div class="navitem"><i class="fa-regular fa-bookmark"></i>Saved</div>
+          <div class="navitem"><i class="fa-regular fa-user"></i>Profile</div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Home feed</div>
+    <div class="caption-sub">Match score on every card</div>
+  </div>
+
+  <!-- JOB DETAIL -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content" style="overflow-y:hidden;">
+          <div class="header-row">
+            <div class="iconbtn"><i class="fa-solid fa-arrow-left"></i></div>
+            <div style="display:flex; gap:7px;">
+              <div class="iconbtn"><i class="fa-solid fa-bookmark" style="color:var(--amber-deep);"></i></div>
+              <div class="iconbtn"><i class="fa-solid fa-arrow-up-from-bracket"></i></div>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; margin-top:12px;">
+            <div class="logo" style="width:48px; height:48px; border-radius:13px; font-size:15px;">NC</div>
+            <div>
+              <div style="font-family:var(--f-display); font-weight:700; font-size:15px;">Flutter developer</div>
+              <div style="font-size:12px; color:var(--ink-2); margin-top:2px;">Nimbus Cloud · Bengaluru</div>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin:12px 0;">
+            <span class="salary" style="font-size:15px;">₹14L – ₹20L /yr</span>
+            <span class="pill green"><i class="fa-solid fa-circle-check"></i> 91% match</span>
+          </div>
+          <div style="display:flex; gap:6px; margin-bottom:12px;">
+            <div class="metric-card"><div class="num" style="font-size:12px;">1–3 yrs</div><div class="lbl">Exp.</div></div>
+            <div class="metric-card"><div class="num" style="font-size:12px;">Remote</div><div class="lbl">Mode</div></div>
+            <div class="metric-card"><div class="num" style="font-size:12px;">1d ago</div><div class="lbl">Posted</div></div>
+          </div>
+          <div class="section-title" style="margin-top:2px;">Skills match</div>
+          <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px;">
+            <span class="skill-tag present"><i class="fa-solid fa-check" style="font-size:8px;"></i> Flutter</span>
+            <span class="skill-tag present"><i class="fa-solid fa-check" style="font-size:8px;"></i> Firebase</span>
+            <span class="skill-tag present"><i class="fa-solid fa-check" style="font-size:8px;"></i> Dart</span>
+            <span class="skill-tag missing"><i class="fa-solid fa-xmark" style="font-size:8px;"></i> REST APIs</span>
+            <span class="skill-tag missing"><i class="fa-solid fa-xmark" style="font-size:8px;"></i> CI/CD</span>
+          </div>
+          <div class="section-title">About the role</div>
+          <div style="font-size:12px; color:var(--ink-2); line-height:1.6;">Build and maintain cross-platform Flutter apps with state management expertise. Work with a remote-first engineering team.</div>
+        </div>
+        <div style="padding:10px 16px 20px; display:flex; gap:9px; border-top:1px solid var(--border); background:var(--surface);">
+          <div class="btn-outline" style="flex:1;">ATS Check</div>
+          <div class="btn-primary" style="flex:2;">Apply now</div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Job detail</div>
+    <div class="caption-sub">Skills gap visible before applying</div>
+  </div>
+
+  <!-- SEARCH & FILTERS -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div class="iconbtn"><i class="fa-solid fa-arrow-left"></i></div>
+            <div style="font-family:var(--f-display); font-weight:700; font-size:14.5px;">Filters</div>
+            <div style="font-size:12px; color:var(--amber-deep); font-weight:600;">Reset</div>
+          </div>
+          <div style="margin-top:12px;" class="searchbar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span style="color:var(--ink);">Flutter developer</span>
+          </div>
+          <div class="section-title">Job type</div>
+          <div class="chiprow">
+            <span class="pill solid-navy">Full-time</span>
+            <span class="pill outline">Contract</span>
+            <span class="pill outline">Internship</span>
+          </div>
+          <div class="section-title">Salary range</div>
+          <div style="padding:0 2px;">
+            <div style="height:4px; background:var(--border); border-radius:4px; position:relative;">
+              <div style="position:absolute; left:15%; right:40%; height:4px; background:var(--amber); border-radius:4px;"></div>
+              <div style="position:absolute; left:15%; top:-7px; width:18px; height:18px; border-radius:50%; background:#fff; border:2px solid var(--amber);"></div>
+              <div style="position:absolute; left:60%; top:-7px; width:18px; height:18px; border-radius:50%; background:#fff; border:2px solid var(--amber);"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:10.5px; color:var(--ink-3); margin-top:9px; font-family:var(--f-mono);"><span>₹8L</span><span>₹40L</span></div>
+          </div>
+          <div class="section-title">Experience</div>
+          <div class="chiprow">
+            <span class="pill solid-navy">0–2 yrs</span>
+            <span class="pill outline">2–5 yrs</span>
+            <span class="pill outline">5+ yrs</span>
+          </div>
+          <div class="section-title">Sources</div>
+          <div class="checkrow"><div class="checkbox checked"><i class="fa-solid fa-check"></i></div><span style="font-size:12.5px;">LinkedIn</span></div>
+          <div class="checkrow"><div class="checkbox checked"><i class="fa-solid fa-check"></i></div><span style="font-size:12.5px;">Indeed</span></div>
+          <div class="checkrow"><div class="checkbox"></div><span style="font-size:12.5px; color:var(--ink-3);">Naukri</span></div>
+          <div class="checkrow" style="border:none;"><div class="checkbox checked"><i class="fa-solid fa-check"></i></div><span style="font-size:12.5px;">Glassdoor</span></div>
+        </div>
+        <div style="padding:10px 16px 20px;"><div class="btn-primary">Show 312 results</div></div>
+      </div>
+    </div>
+    <div class="caption">Search & filters</div>
+    <div class="caption-sub">Source and salary control</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 3: PIPELINE CRM ═══ -->
+<div class="section-label">03 · Application Pipeline</div>
+<div class="gallery">
+
+  <!-- KANBAN BOARD -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div style="font-family:var(--f-display); font-weight:700; font-size:18px;">Pipeline</div>
+            <div style="display:flex; gap:7px;">
+              <div class="iconbtn"><i class="fa-solid fa-sliders"></i></div>
+            </div>
+          </div>
+          <div style="display:flex; gap:7px; margin-top:6px;">
+            <div class="metric-card"><div class="num">24</div><div class="lbl">Applied</div></div>
+            <div class="metric-card" style="background:var(--amber-tint);"><div class="num" style="color:var(--amber-deep);">6</div><div class="lbl">Active</div></div>
+            <div class="metric-card" style="background:var(--green-tint);"><div class="num" style="color:var(--green);">2</div><div class="lbl">Offers</div></div>
+          </div>
+          <div style="flex:1; display:flex; gap:8px; margin-top:12px; overflow:hidden;">
+            <div class="kanban-col">
+              <div class="col-head">Saved <span class="pill navy" style="font-size:8px; padding:2px 5px;">5</span></div>
+              <div class="kanban-item"><div class="k-title">Flutter Dev</div><div class="k-meta">Nimbus Cloud</div></div>
+              <div class="kanban-item"><div class="k-title">Mobile Eng.</div><div class="k-meta">Lumen Health</div></div>
+              <div class="kanban-item" style="border:1px dashed var(--border); background:transparent; display:flex; align-items:center; justify-content:center; gap:4px; color:var(--ink-3);"><i class="fa-solid fa-plus" style="font-size:9px;"></i><span style="font-size:9.5px;">Add job</span></div>
+            </div>
+            <div class="kanban-col">
+              <div class="col-head">Applied <span class="pill navy" style="font-size:8px; padding:2px 5px;">8</span></div>
+              <div class="kanban-item" style="border-left:3px solid var(--amber);"><div class="k-title">Backend Eng.</div><div class="k-meta">Atlas Freight</div></div>
+              <div class="kanban-item"><div class="k-title">Full Stack</div><div class="k-meta">Verdant Retail</div></div>
+            </div>
+            <div class="kanban-col">
+              <div class="col-head">Interview <span class="pill amber" style="font-size:8px; padding:2px 5px;">3</span></div>
+              <div class="kanban-item" style="border-left:3px solid var(--green);"><div class="k-title">iOS Dev</div><div class="k-meta">Orion Labs</div><div style="font-size:9px; color:var(--green); margin-top:3px; font-weight:600;">Round 2 today</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="bottomnav">
+          <div class="navitem"><i class="fa-solid fa-house"></i>Home</div>
+          <div class="navitem"><i class="fa-solid fa-magnifying-glass"></i>Search</div>
+          <div class="navitem active"><i class="fa-solid fa-table-columns"></i>Pipeline</div>
+          <div class="navitem"><i class="fa-regular fa-user"></i>Profile</div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Application kanban</div>
+    <div class="caption-sub">Saved → Applied → Interview → Offer</div>
+  </div>
+
+  <!-- APPLICATION DETAIL -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div class="iconbtn"><i class="fa-solid fa-arrow-left"></i></div>
+            <div class="iconbtn"><i class="fa-solid fa-ellipsis"></i></div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; margin-top:12px;">
+            <div class="logo" style="width:44px; height:44px; border-radius:12px; font-size:14px;">OL</div>
+            <div>
+              <div style="font-family:var(--f-display); font-weight:700; font-size:14px;">iOS Developer</div>
+              <div style="font-size:11.5px; color:var(--ink-2); margin-top:1px;">Orion Labs · Remote</div>
+            </div>
+            <span class="pill green" style="margin-left:auto;">Interview</span>
+          </div>
+          <div style="margin-top:12px;">
+            <div class="section-title" style="margin-top:0;">Interview rounds</div>
+            <div class="round-item">
+              <div class="round-dot" style="background:var(--green);"></div>
+              <div><div style="font-size:12px; font-weight:600;">Technical screen</div><div style="font-size:10.5px; color:var(--ink-3);">June 12 · Cleared</div></div>
+              <span class="pill green" style="margin-left:auto; font-size:9px;">Done</span>
+            </div>
+            <div class="round-item" style="border-color:var(--amber);">
+              <div class="round-dot" style="background:var(--amber);"></div>
+              <div><div style="font-size:12px; font-weight:600;">System design</div><div style="font-size:10.5px; color:var(--ink-3);">Today 3:00 PM</div></div>
+              <span class="pill amber" style="margin-left:auto; font-size:9px;">Today</span>
+            </div>
+            <div class="round-item" style="border:none;">
+              <div class="round-dot" style="background:var(--border);"></div>
+              <div><div style="font-size:12px; font-weight:600; color:var(--ink-3);">HR round</div><div style="font-size:10.5px; color:var(--ink-3);">Pending</div></div>
+            </div>
+          </div>
+          <div class="section-title">Notes</div>
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px; font-size:11.5px; color:var(--ink-2); line-height:1.6;">Asked about MVVM pattern and state management. Mentioned Swift concurrency is a plus. Hiring manager: Priya S.</div>
+          <div class="section-title">Recruiter</div>
+          <div class="menurow" style="border-bottom:none; padding:8px 0;">
+            <div class="micon"><i class="fa-brands fa-linkedin"></i></div>
+            <div><div class="mlabel">Priya Sharma</div><div class="msub">Last contact: 2 days ago</div></div>
+            <div class="btn-sm">Message</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Application detail</div>
+    <div class="caption-sub">Rounds, notes & recruiter CRM</div>
+  </div>
+
+  <!-- SAVED JOBS -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div style="font-family:var(--f-display); font-weight:700; font-size:18px;">Saved jobs</div>
+            <span class="pill navy">12</span>
+          </div>
+          <div class="tabrow" style="margin-top:12px;">
+            <div class="tabitem active">All</div>
+            <div class="tabitem">Applied</div>
+            <div class="tabitem">Expired</div>
+          </div>
+          <div class="jobcard">
+            <span class="bookmark"><i class="fa-solid fa-trash" style="color:var(--ink-3); font-size:12px;"></i></span>
+            <div class="top">
+              <div class="logo">LH</div>
+              <div>
+                <div class="title">Backend engineer, payments</div>
+                <div class="meta">Lumen Health · Hyderabad</div>
+              </div>
+            </div>
+            <div class="tagrow">
+              <span class="pill solid-navy">Applied</span>
+              <span class="pill outline">via Indeed</span>
+            </div>
+          </div>
+          <div class="jobcard">
+            <span class="bookmark"><i class="fa-solid fa-trash" style="color:var(--ink-3); font-size:12px;"></i></span>
+            <div class="top">
+              <div class="logo">VR</div>
+              <div>
+                <div class="title">Growth marketing lead</div>
+                <div class="meta">Verdant Retail · Remote</div>
+              </div>
+            </div>
+            <div class="tagrow">
+              <span class="pill amber">Saved</span>
+              <span class="pill outline">via Naukri</span>
+            </div>
+          </div>
+          <div class="jobcard">
+            <span class="bookmark"><i class="fa-solid fa-trash" style="color:var(--ink-3); font-size:12px;"></i></span>
+            <div class="top">
+              <div class="logo">AT</div>
+              <div>
+                <div class="title">QA automation engineer</div>
+                <div class="meta">Atlas Freight · Pune</div>
+              </div>
+            </div>
+            <div class="tagrow">
+              <span class="pill red" style="font-size:9.5px;"><i class="fa-solid fa-triangle-exclamation" style="font-size:8px;"></i> Expired</span>
+              <span class="pill outline">via Glassdoor</span>
+            </div>
+          </div>
+        </div>
+        <div class="bottomnav">
+          <div class="navitem"><i class="fa-solid fa-house"></i>Home</div>
+          <div class="navitem"><i class="fa-solid fa-magnifying-glass"></i>Search</div>
+          <div class="navitem active"><i class="fa-solid fa-bookmark"></i>Saved</div>
+          <div class="navitem"><i class="fa-regular fa-user"></i>Profile</div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Saved jobs</div>
+    <div class="caption-sub">Status + expiry detection</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 4: CAREER HEALTH ═══ -->
+<div class="section-label">04 · Career Health Dashboard</div>
+<div class="gallery">
+
+  <!-- CAREER DASHBOARD -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div style="font-family:var(--f-display); font-weight:700; font-size:18px;">Career health</div>
+            <div class="iconbtn"><i class="fa-solid fa-info"></i></div>
+          </div>
+
+          <!-- Score ring -->
+          <div style="display:flex; justify-content:center; margin:14px 0 10px;">
+            <div class="score-ring">
+              <svg width="110" height="110" viewBox="0 0 110 110">
+                <circle cx="55" cy="55" r="46" fill="none" stroke="#E8E5DC" stroke-width="9"/>
+                <circle cx="55" cy="55" r="46" fill="none" stroke="#FF8A3D" stroke-width="9"
+                  stroke-dasharray="289" stroke-dashoffset="72" stroke-linecap="round"
+                  transform="rotate(-90 55 55)"/>
+              </svg>
+              <div class="inner">
+                <div class="big">78</div>
+                <div class="small-lbl">/ 100</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:11px; color:var(--ink-3); text-align:center; margin-bottom:14px; font-family:var(--f-mono);">Career Score · +4 this week</div>
+
+          <!-- Dimension bars -->
+          <div style="display:flex; flex-direction:column; gap:9px;">
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;"><span style="font-weight:600;">GitHub</span><span class="pill navy" style="font-size:9px;">85</span></div>
+              <div class="progress-track"><div class="progress-fill amber" style="width:85%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;"><span style="font-weight:600;">LeetCode</span><span class="pill navy" style="font-size:9px;">70</span></div>
+              <div class="progress-track"><div class="progress-fill amber" style="width:70%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;"><span style="font-weight:600;">Projects</span><span class="pill navy" style="font-size:9px;">80</span></div>
+              <div class="progress-track"><div class="progress-fill amber" style="width:80%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;"><span style="font-weight:600;">Applications</span><span class="pill navy" style="font-size:9px;">65</span></div>
+              <div class="progress-track"><div class="progress-fill navy" style="width:65%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;"><span style="font-weight:600;">Resume</span><span class="pill navy" style="font-size:9px;">90</span></div>
+              <div class="progress-track"><div class="progress-fill green" style="width:90%;"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="bottomnav">
+          <div class="navitem"><i class="fa-solid fa-house"></i>Home</div>
+          <div class="navitem active"><i class="fa-solid fa-chart-line"></i>Health</div>
+          <div class="navitem"><i class="fa-solid fa-bookmark"></i>Saved</div>
+          <div class="navitem"><i class="fa-regular fa-user"></i>Profile</div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Career health</div>
+    <div class="caption-sub">Single score, 5 dimensions</div>
+  </div>
+
+  <!-- GITHUB TRACKER -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div class="iconbtn"><i class="fa-solid fa-arrow-left"></i></div>
+            <div style="font-family:var(--f-display); font-weight:700; font-size:15px; display:flex; gap:7px; align-items:center;"><i class="fa-brands fa-github" style="font-size:16px;"></i> GitHub</div>
+            <div style="width:32px;"></div>
+          </div>
+
+          <div style="display:flex; gap:7px; margin-top:12px;">
+            <div class="metric-card"><div class="num">94</div><div class="lbl">Commits</div></div>
+            <div class="metric-card"><div class="num">3</div><div class="lbl">Repos</div></div>
+            <div class="metric-card"><div class="num">18</div><div class="lbl">Stars</div></div>
+          </div>
+
+          <div class="alert-strip warn" style="margin-top:12px;">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div><div class="a-title">No commits in 48 hours</div><div class="a-sub">Recruiters value consistency. Push something small today.</div></div>
+          </div>
+
+          <div class="section-title">7-day streak</div>
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px;">
+            <div class="streak-dots">
+              <div class="s-dot filled"></div><div class="s-dot filled"></div><div class="s-dot filled"></div>
+              <div class="s-dot filled"></div><div class="s-dot filled"></div>
+              <div class="s-dot empty"></div><div class="s-dot empty"></div>
+            </div>
+            <div style="font-size:10.5px; color:var(--ink-3); margin-top:6px; font-family:var(--f-mono);">5-day streak · Best: 14 days</div>
+          </div>
+
+          <div class="section-title">Languages this month</div>
+          <div style="display:flex; flex-direction:column; gap:7px;">
+            <div><div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:3px;"><span>Dart</span><span style="font-family:var(--f-mono);">62%</span></div><div class="progress-track"><div class="progress-fill amber" style="width:62%;"></div></div></div>
+            <div><div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:3px;"><span>JavaScript</span><span style="font-family:var(--f-mono);">24%</span></div><div class="progress-track"><div class="progress-fill navy" style="width:24%;"></div></div></div>
+            <div><div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:3px;"><span>Python</span><span style="font-family:var(--f-mono);">14%</span></div><div class="progress-track"><div class="progress-fill navy" style="width:14%; opacity:.6;"></div></div></div>
+          </div>
+
+          <div class="section-title">Contribution graph</div>
+          <div style="display:flex; gap:3px; flex-wrap:wrap;">
+            <!-- 28 small squares for contribution graph -->
+            <div style="width:10px; height:10px; border-radius:2px; background:var(--amber); opacity:.9;"></div>
+            <div style="width:10px; height:10px; border-radius:2px; background:var(--amber); opacity:.5;"></div>
+            <div style="width:10px; height:10px; border-radius:2px; background:var(--border);"></div>
+            <div style="width:10px; height:10px; border-radius:2px; background:var(--amber); opacity:.8;"></div>
+            <div style="width:10px; height:10px; border-radius:2px; background:var(--amber);"></div>
+            <div style="width:10px; height:10px; border-radius:2px; background:var(--border);"></div>
+            <div style="width:10px; height:10px; border-radius:2px; background:var(--border);"></div>
+            <div style="width:10px; height:10px; border-radius:2px; background:var(--amber); opacity:.6;"></div>
+            <div style="width:10px; height:10px; border-radius:2px; background:var(--amber);"></div>
+            <div style="width:10px; height:10px; border-radius:2px; background:var(--amber); opacity:.4;"></div>
+            <div style="width:10px; height:10px; border-radius:2px; background:var(--border);"></div>
+            <div style="width:10px; height:10px; border-radius:2px; background:var(--amber); opacity:.7;"></div>
+            <div style="width:10px; height:10px; border-radius:2px; background:var(--amber); opacity:.9;"></div>
+            <div style="width:10px; height:10px; border-radius:2px; background:var(--amber);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">GitHub tracker</div>
+    <div class="caption-sub">Streak, languages & activity</div>
+  </div>
+
+  <!-- LEETCODE TRACKER -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div class="iconbtn"><i class="fa-solid fa-arrow-left"></i></div>
+            <div style="font-family:var(--f-display); font-weight:700; font-size:15px;">LeetCode</div>
+            <div style="width:32px;"></div>
+          </div>
+
+          <div style="display:flex; gap:7px; margin-top:12px;">
+            <div class="metric-card"><div class="num">148</div><div class="lbl">Solved</div></div>
+            <div class="metric-card"><div class="num">1482</div><div class="lbl">Rating</div></div>
+            <div class="metric-card"><div class="num">9</div><div class="lbl">Streak</div></div>
+          </div>
+
+          <div class="section-title">Interview readiness</div>
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <span style="font-family:var(--f-display); font-weight:700; font-size:13px;">DSA Readiness</span>
+              <span style="font-family:var(--f-mono); font-size:14px; font-weight:700; color:var(--amber-deep);">72%</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:7px;">
+              <div><div style="display:flex; justify-content:space-between; font-size:10.5px; margin-bottom:3px;"><span>Arrays / Strings</span><span style="color:var(--green); font-weight:600;">90%</span></div><div class="progress-track"><div class="progress-fill green" style="width:90%;"></div></div></div>
+              <div><div style="display:flex; justify-content:space-between; font-size:10.5px; margin-bottom:3px;"><span>Trees / Graphs</span><span style="font-weight:600;">65%</span></div><div class="progress-track"><div class="progress-fill amber" style="width:65%;"></div></div></div>
+              <div><div style="display:flex; justify-content:space-between; font-size:10.5px; margin-bottom:3px;"><span>Dynamic Programming</span><span style="color:var(--red); font-weight:600;">30%</span></div><div class="progress-track"><div class="progress-fill red" style="width:30%;"></div></div></div>
+              <div><div style="display:flex; justify-content:space-between; font-size:10.5px; margin-bottom:3px;"><span>Backtracking</span><span style="font-weight:600;">48%</span></div><div class="progress-track"><div class="progress-fill navy" style="width:48%;"></div></div></div>
+            </div>
+          </div>
+
+          <div class="alert-strip warn">
+            <i class="fa-solid fa-fire"></i>
+            <div><div class="a-title">Weakest: Dynamic Programming</div><div class="a-sub">Solve 2 DP problems today to improve interview readiness by 5%.</div></div>
+          </div>
+
+          <div class="section-title" style="margin-top:10px;">Difficulty split</div>
+          <div style="display:flex; gap:6px;">
+            <div class="metric-card" style="background:var(--green-tint);"><div class="num" style="color:var(--green); font-size:15px;">82</div><div class="lbl" style="color:var(--green);">Easy</div></div>
+            <div class="metric-card" style="background:var(--amber-tint);"><div class="num" style="color:var(--amber-deep); font-size:15px;">54</div><div class="lbl" style="color:var(--amber-deep);">Medium</div></div>
+            <div class="metric-card" style="background:var(--red-tint);"><div class="num" style="color:var(--red); font-size:15px;">12</div><div class="lbl" style="color:var(--red);">Hard</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">LeetCode tracker</div>
+    <div class="caption-sub">Readiness by topic area</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 5: RESUME ═══ -->
+<div class="section-label">05 · Resume Tools</div>
+<div class="gallery">
+
+  <!-- RESUME MANAGER -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div style="font-family:var(--f-display); font-weight:700; font-size:18px;">Resumes</div>
+            <div class="btn-sm"><i class="fa-solid fa-plus" style="font-size:9px;"></i> Add</div>
+          </div>
+          <div style="font-size:12px; color:var(--ink-2); margin-top:6px;">Track which resume gets interviews.</div>
+
+          <div class="resume-card" style="margin-top:14px; border-color:var(--amber); border-width:1.5px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div class="r-title">Flutter Resume</div>
+                <div class="r-meta">Updated 3 days ago · v4</div>
+              </div>
+              <span class="pill amber">Active</span>
+            </div>
+            <div class="r-stats">
+              <div class="r-stat"><div class="rn">32</div><div class="rl">Applied</div></div>
+              <div class="r-stat"><div class="rn" style="color:var(--green);">5</div><div class="rl">Interviews</div></div>
+              <div class="r-stat"><div class="rn">15.6%</div><div class="rl">Rate</div></div>
+            </div>
+          </div>
+
+          <div class="resume-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div class="r-title">Frontend Resume</div>
+                <div class="r-meta">Updated 2 weeks ago · v2</div>
+              </div>
+              <span class="pill outline">Draft</span>
+            </div>
+            <div class="r-stats">
+              <div class="r-stat"><div class="rn">18</div><div class="rl">Applied</div></div>
+              <div class="r-stat"><div class="rn" style="color:var(--red);">0</div><div class="rl">Interviews</div></div>
+              <div class="r-stat"><div class="rn">0%</div><div class="rl">Rate</div></div>
+            </div>
+          </div>
+
+          <div class="resume-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div class="r-title">Full Stack Resume</div>
+                <div class="r-meta">Updated 1 month ago · v1</div>
+              </div>
+            </div>
+            <div class="r-stats">
+              <div class="r-stat"><div class="rn">9</div><div class="rl">Applied</div></div>
+              <div class="r-stat"><div class="rn" style="color:var(--green);">2</div><div class="rl">Interviews</div></div>
+              <div class="r-stat"><div class="rn">22%</div><div class="rl">Rate</div></div>
+            </div>
+          </div>
+
+          <div class="alert-strip success" style="margin-top:4px;">
+            <i class="fa-solid fa-trophy"></i>
+            <div><div class="a-title">Full Stack Resume performs best</div><div class="a-sub">22% interview rate — try it for backend roles.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Resume manager</div>
+    <div class="caption-sub">Compare performance by version</div>
+  </div>
+
+  <!-- ATS SCANNER -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div class="iconbtn"><i class="fa-solid fa-arrow-left"></i></div>
+            <div style="font-family:var(--f-display); font-weight:700; font-size:15px;">ATS Scanner</div>
+            <div style="width:32px;"></div>
+          </div>
+
+          <div style="background:var(--navy); border-radius:16px; padding:16px; margin-top:12px; text-align:center;">
+            <div style="font-size:11px; color:rgba(255,255,255,.6); font-family:var(--f-mono); text-transform:uppercase; letter-spacing:.04em;">ATS Score</div>
+            <div style="font-family:var(--f-display); font-weight:700; font-size:48px; color:var(--amber); line-height:1.1; margin:6px 0 4px;">81</div>
+            <div style="font-size:11px; color:rgba(255,255,255,.5);">Flutter Resume vs. Flutter Dev JD</div>
+          </div>
+
+          <div class="section-title" style="margin-top:14px;">Keywords missing</div>
+          <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px;">
+            <span class="skill-tag missing">REST APIs</span>
+            <span class="skill-tag missing">Firebase Auth</span>
+            <span class="skill-tag missing">CI/CD</span>
+            <span class="skill-tag missing">Docker</span>
+          </div>
+
+          <div class="section-title">Keywords present</div>
+          <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px;">
+            <span class="skill-tag present">Flutter</span>
+            <span class="skill-tag present">Dart</span>
+            <span class="skill-tag present">Git</span>
+            <span class="skill-tag present">State Mgmt</span>
+            <span class="skill-tag present">Node.js</span>
+          </div>
+
+          <div class="alert-strip info">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <div><div class="a-title">Auto-tailor this resume</div><div class="a-sub">Add the 4 missing keywords and push score to ~94%.</div></div>
+          </div>
+        </div>
+        <div style="padding:10px 16px 20px;"><div class="btn-primary">Auto-tailor resume</div></div>
+      </div>
+    </div>
+    <div class="caption">ATS scanner</div>
+    <div class="caption-sub">Resume vs job description</div>
+  </div>
+
+  <!-- SKILL GAP ANALYZER -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div class="iconbtn"><i class="fa-solid fa-arrow-left"></i></div>
+            <div style="font-family:var(--f-display); font-weight:700; font-size:15px;">Skill gap</div>
+            <div style="width:32px;"></div>
+          </div>
+          <div style="font-size:11.5px; color:var(--ink-2); margin-top:8px;">Analysed 500 Flutter jobs you saved or applied to.</div>
+
+          <div class="section-title" style="margin-top:12px;">Most demanded skills</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:3px;">
+                <span style="display:flex; align-items:center; gap:5px;"><span class="skill-tag present" style="margin:0;">✓</span> Flutter</span>
+                <span style="font-family:var(--f-mono); font-size:11px; color:var(--ink-3);">89%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill green" style="width:89%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:3px;">
+                <span style="display:flex; align-items:center; gap:5px;"><span class="skill-tag present" style="margin:0;">✓</span> Firebase</span>
+                <span style="font-family:var(--f-mono); font-size:11px; color:var(--ink-3);">76%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill green" style="width:76%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:3px;">
+                <span style="display:flex; align-items:center; gap:5px;"><span class="skill-tag missing" style="margin:0;">✗</span> REST APIs</span>
+                <span style="font-family:var(--f-mono); font-size:11px; color:var(--ink-3);">71%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill red" style="width:71%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:3px;">
+                <span style="display:flex; align-items:center; gap:5px;"><span class="skill-tag missing" style="margin:0;">✗</span> Docker</span>
+                <span style="font-family:var(--f-mono); font-size:11px; color:var(--ink-3);">59%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill red" style="width:59%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:3px;">
+                <span style="display:flex; align-items:center; gap:5px;"><span class="skill-tag missing" style="margin:0;">✗</span> AWS</span>
+                <span style="font-family:var(--f-mono); font-size:11px; color:var(--ink-3);">51%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill red" style="width:51%;"></div></div>
+            </div>
+          </div>
+
+          <div class="alert-strip warn" style="margin-top:12px;">
+            <i class="fa-solid fa-bullseye"></i>
+            <div><div class="a-title">3 high-priority gaps</div><div class="a-sub">REST APIs, Docker, AWS appear in 51–71% of target roles.</div></div>
+          </div>
+        </div>
+        <div style="padding:10px 16px 20px;"><div class="btn-primary">View learning roadmap</div></div>
+      </div>
+    </div>
+    <div class="caption">Skill gap analyzer</div>
+    <div class="caption-sub">Your skills vs 500 target roles</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 6: SALARY & INTEL ═══ -->
+<div class="section-label">06 · Salary Intelligence</div>
+<div class="gallery">
+
+  <!-- SALARY INTELLIGENCE -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div class="iconbtn"><i class="fa-solid fa-arrow-left"></i></div>
+            <div style="font-family:var(--f-display); font-weight:700; font-size:15px;">Salary intel</div>
+            <div style="width:32px;"></div>
+          </div>
+
+          <div style="background:var(--navy); border-radius:16px; padding:14px; margin-top:12px;">
+            <div style="font-size:10.5px; color:rgba(255,255,255,.6); font-family:var(--f-mono); text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;">Flutter Developer · India</div>
+            <div style="display:flex; gap:10px;">
+              <div style="flex:1; text-align:center;">
+                <div style="font-size:10px; color:rgba(255,255,255,.5);">Median</div>
+                <div style="font-family:var(--f-display); font-weight:700; font-size:20px; color:#fff; margin-top:3px;">₹9.4L</div>
+              </div>
+              <div style="width:1px; background:rgba(255,255,255,.1);"></div>
+              <div style="flex:1; text-align:center;">
+                <div style="font-size:10px; color:rgba(255,255,255,.5);">Top 25%</div>
+                <div style="font-family:var(--f-display); font-weight:700; font-size:20px; color:var(--amber); margin-top:3px;">₹18L</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-title">By city</div>
+          <div style="display:flex; flex-direction:column; gap:7px;">
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span style="font-weight:600;">Bengaluru</span><span style="font-family:var(--f-mono); font-size:11px; color:var(--navy);">₹20L</span></div>
+              <div class="salary-band"><div class="p75" style="left:20%; right:15%;"></div><div class="marker" style="left:62%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span style="font-weight:600;">Hyderabad</span><span style="font-family:var(--f-mono); font-size:11px; color:var(--navy);">₹16L</span></div>
+              <div class="salary-band"><div class="p75" style="left:15%; right:25%;"></div><div class="marker" style="left:50%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span style="font-weight:600;">Remote</span><span style="font-family:var(--f-mono); font-size:11px; color:var(--navy);">₹22L</span></div>
+              <div class="salary-band"><div class="p75" style="left:25%; right:10%;"></div><div class="marker" style="left:70%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span style="font-weight:600;">Mumbai</span><span style="font-family:var(--f-mono); font-size:11px; color:var(--navy);">₹14L</span></div>
+              <div class="salary-band"><div class="p75" style="left:10%; right:30%;"></div><div class="marker" style="left:44%;"></div></div>
+            </div>
+          </div>
+
+          <div class="section-title">YoY growth</div>
+          <div class="mini-bars">
+            <div class="mini-bar" style="height:18px;"></div>
+            <div class="mini-bar" style="height:22px;"></div>
+            <div class="mini-bar filled" style="height:20px;"></div>
+            <div class="mini-bar filled" style="height:26px;"></div>
+            <div class="mini-bar active" style="height:32px;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:9.5px; color:var(--ink-3); font-family:var(--f-mono); margin-top:4px;">
+            <span>2021</span><span>2022</span><span>2023</span><span>2024</span><span>2025</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Salary intelligence</div>
+    <div class="caption-sub">Median, top 25%, by city</div>
+  </div>
+
+  <!-- AI CAREER COACH -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div style="font-family:var(--f-display); font-weight:700; font-size:18px;">AI Coach</div>
+            <span class="pill amber" style="font-size:9.5px; gap:4px;"><i class="fa-solid fa-circle" style="font-size:6px;"></i> Daily</span>
+          </div>
+
+          <!-- Coach message -->
+          <div style="background:var(--navy); border-radius:16px; padding:14px; margin-top:12px; position:relative; overflow:hidden;">
+            <div style="position:absolute; top:-10px; right:-10px; width:60px; height:60px; border-radius:50%; background:rgba(255,138,61,.12);"></div>
+            <div style="font-size:10.5px; color:rgba(255,255,255,.6); font-family:var(--f-mono); margin-bottom:8px; text-transform:uppercase; letter-spacing:.04em;">Today · Jun 18</div>
+            <div style="font-size:13px; color:#fff; line-height:1.6;">You applied to <span style="color:var(--amber); font-weight:700;">6 jobs</span> this week. High performers average <span style="font-weight:600;">12/week</span>.</div>
+            <div style="font-size:13px; color:#fff; line-height:1.6; margin-top:8px;">Your weakest area is <span style="color:var(--amber); font-weight:700;">Dynamic Programming</span>.</div>
+          </div>
+
+          <div class="section-title" style="margin-top:14px;">Recommended today</div>
+
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:11px; margin-bottom:8px; display:flex; gap:10px; align-items:flex-start;">
+            <div style="width:30px; height:30px; border-radius:8px; background:var(--purple-tint); color:var(--purple); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;"><i class="fa-solid fa-code"></i></div>
+            <div><div style="font-size:12.5px; font-weight:600;">Solve 2 DP problems</div><div style="font-size:11px; color:var(--ink-3); margin-top:2px;">Target: Coin Change, Longest Common Subsequence</div></div>
+          </div>
+
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:11px; margin-bottom:8px; display:flex; gap:10px; align-items:flex-start;">
+            <div style="width:30px; height:30px; border-radius:8px; background:var(--navy-tint); color:var(--navy); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;"><i class="fa-brands fa-github"></i></div>
+            <div><div style="font-size:12.5px; font-weight:600;">Push a commit today</div><div style="font-size:11px; color:var(--ink-3); margin-top:2px;">Keep your GitHub streak alive — 5 days running.</div></div>
+          </div>
+
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:11px; display:flex; gap:10px; align-items:flex-start;">
+            <div style="width:30px; height:30px; border-radius:8px; background:var(--amber-tint); color:var(--amber-deep); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;"><i class="fa-solid fa-paper-plane"></i></div>
+            <div><div style="font-size:12.5px; font-weight:600;">Apply to 6 more jobs</div><div style="font-size:11px; color:var(--ink-3); margin-top:2px;">Match your weekly target of 12 applications.</div></div>
+          </div>
+        </div>
+        <div class="bottomnav">
+          <div class="navitem"><i class="fa-solid fa-house"></i>Home</div>
+          <div class="navitem"><i class="fa-solid fa-chart-line"></i>Health</div>
+          <div class="navitem active"><i class="fa-solid fa-robot"></i>Coach</div>
+          <div class="navitem"><i class="fa-regular fa-user"></i>Profile</div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">AI coach</div>
+    <div class="caption-sub">Daily personalised actions</div>
+  </div>
+
+  <!-- LEARNING ROADMAP -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div class="iconbtn"><i class="fa-solid fa-arrow-left"></i></div>
+            <div style="font-family:var(--f-display); font-weight:700; font-size:15px;">Roadmap</div>
+            <div style="width:32px;"></div>
+          </div>
+          <div style="margin-top:8px; font-size:11.5px; color:var(--ink-2);">Goal: <span style="font-weight:600; color:var(--navy);">Flutter Developer (SDE-2)</span></div>
+
+          <div style="height:3px; background:var(--border); border-radius:3px; margin:10px 0; overflow:hidden;"><div style="width:40%; height:100%; background:var(--amber); border-radius:3px;"></div></div>
+          <div style="font-size:10.5px; color:var(--ink-3); font-family:var(--f-mono); margin-bottom:14px;">40% complete · ~8 weeks remaining</div>
+
+          <div class="roadmap-row">
+            <div class="roadmap-dot done"><i class="fa-solid fa-check" style="font-size:9px;"></i></div>
+            <div>
+              <div style="font-size:12.5px; font-weight:600;">Dart advanced concepts</div>
+              <div style="font-size:10.5px; color:var(--ink-3); margin-top:2px;">Week 1–2 · Completed</div>
+            </div>
+          </div>
+          <div class="roadmap-row">
+            <div class="roadmap-dot done"><i class="fa-solid fa-check" style="font-size:9px;"></i></div>
+            <div>
+              <div style="font-size:12.5px; font-weight:600;">State management (Riverpod)</div>
+              <div style="font-size:10.5px; color:var(--ink-3); margin-top:2px;">Week 3 · Completed</div>
+            </div>
+          </div>
+          <div class="roadmap-row">
+            <div class="roadmap-dot active">W4</div>
+            <div style="flex:1;">
+              <div style="font-size:12.5px; font-weight:600;">REST APIs & HTTP</div>
+              <div style="font-size:10.5px; color:var(--amber-deep); margin-top:2px; font-weight:600;">This week — In progress</div>
+              <div class="progress-track" style="margin-top:5px;"><div class="progress-fill amber" style="width:55%;"></div></div>
+            </div>
+          </div>
+          <div class="roadmap-row">
+            <div class="roadmap-dot pending">W5</div>
+            <div>
+              <div style="font-size:12.5px; font-weight:600; color:var(--ink-2);">CI/CD with GitHub Actions</div>
+              <div style="font-size:10.5px; color:var(--ink-3); margin-top:2px;">Week 5</div>
+            </div>
+          </div>
+          <div class="roadmap-row" style="border:none;">
+            <div class="roadmap-dot pending">W6</div>
+            <div>
+              <div style="font-size:12.5px; font-weight:600; color:var(--ink-2);">Docker basics</div>
+              <div style="font-size:10.5px; color:var(--ink-3); margin-top:2px;">Week 6</div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:10px 16px 20px;"><div class="btn-primary">Continue REST APIs</div></div>
+      </div>
+    </div>
+    <div class="caption">Learning roadmap</div>
+    <div class="caption-sub">Skill gap → weekly plan</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 7: PROFILE ═══ -->
+<div class="section-label">07 · Profile & Settings</div>
+<div class="gallery">
+
+  <!-- PROFILE -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div style="font-family:var(--f-display); font-weight:700; font-size:18px;">Profile</div>
+            <div class="iconbtn"><i class="fa-solid fa-pen"></i></div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
+            <div class="avatar" style="width:50px; height:50px; font-size:15px;">AM</div>
+            <div>
+              <div style="font-family:var(--f-display); font-weight:700; font-size:15px;">Arjun Mehta</div>
+              <div style="font-size:11.5px; color:var(--ink-2); margin-top:1px;">Flutter Developer · Vijayawada</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:7px; margin:14px 0 6px;">
+            <div class="metric-card"><div class="num">24</div><div class="lbl">Applied</div></div>
+            <div class="metric-card"><div class="num">12</div><div class="lbl">Saved</div></div>
+            <div class="metric-card" style="background:var(--amber-tint);"><div class="num" style="color:var(--amber-deep);">78</div><div class="lbl">Score</div></div>
+          </div>
+
+          <div class="section-title">Job sources</div>
+          <div class="menurow">
+            <div class="micon"><i class="fa-brands fa-linkedin"></i></div>
+            <div class="mlabel">LinkedIn</div>
+            <div class="toggle on"><div class="knob"></div></div>
+          </div>
+          <div class="menurow">
+            <div class="micon"><i class="fa-solid fa-briefcase"></i></div>
+            <div class="mlabel">Indeed</div>
+            <div class="toggle on"><div class="knob"></div></div>
+          </div>
+          <div class="menurow">
+            <div class="micon"><i class="fa-solid fa-globe"></i></div>
+            <div class="mlabel">Naukri</div>
+            <div class="toggle off"><div class="knob"></div></div>
+          </div>
+
+          <div class="section-title">Integrations</div>
+          <div class="menurow">
+            <div class="micon"><i class="fa-brands fa-github"></i></div>
+            <div class="mlabel">GitHub<div class="msub">arjunmehta · Connected</div></div>
+            <span class="pill green" style="font-size:9px;">Live</span>
+          </div>
+          <div class="menurow" style="border-bottom:none;">
+            <div class="micon" style="background:var(--amber-tint); color:var(--amber-deep);"><i class="fa-solid fa-code"></i></div>
+            <div class="mlabel">LeetCode<div class="msub">Not connected</div></div>
+            <div class="btn-sm">Connect</div>
+          </div>
+        </div>
+        <div class="bottomnav">
+          <div class="navitem"><i class="fa-solid fa-house"></i>Home</div>
+          <div class="navitem"><i class="fa-solid fa-chart-line"></i>Health</div>
+          <div class="navitem"><i class="fa-solid fa-bookmark"></i>Saved</div>
+          <div class="navitem active"><i class="fa-solid fa-user"></i>Profile</div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Profile</div>
+    <div class="caption-sub">Integrations & source control</div>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div class="iconbtn"><i class="fa-solid fa-arrow-left"></i></div>
+            <div style="font-family:var(--f-display); font-weight:700; font-size:15px;">Notifications</div>
+            <div style="font-size:12px; color:var(--amber-deep); font-weight:600;">Mark all read</div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <!-- notif items -->
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px; margin-bottom:8px; display:flex; gap:10px; align-items:flex-start;">
+              <div style="width:32px; height:32px; border-radius:9px; background:var(--green-tint); color:var(--green); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;"><i class="fa-solid fa-circle-check"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:12.5px; font-weight:600;">Interview scheduled</div>
+                <div style="font-size:11px; color:var(--ink-3); margin-top:2px; line-height:1.4;">Orion Labs confirmed your system design round for today at 3 PM.</div>
+                <div style="font-size:10px; color:var(--ink-3); margin-top:4px; font-family:var(--f-mono);">2h ago</div>
+              </div>
+              <div style="width:7px; height:7px; border-radius:50%; background:var(--amber); flex-shrink:0; margin-top:4px;"></div>
+            </div>
+
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px; margin-bottom:8px; display:flex; gap:10px; align-items:flex-start;">
+              <div style="width:32px; height:32px; border-radius:9px; background:var(--amber-tint); color:var(--amber-deep); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;"><i class="fa-solid fa-fire"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:12.5px; font-weight:600;">Streak at risk</div>
+                <div style="font-size:11px; color:var(--ink-3); margin-top:2px; line-height:1.4;">No GitHub commits in 48 hours. Push something to keep your 5-day streak.</div>
+                <div style="font-size:10px; color:var(--ink-3); margin-top:4px; font-family:var(--f-mono);">5h ago</div>
+              </div>
+              <div style="width:7px; height:7px; border-radius:50%; background:var(--amber); flex-shrink:0; margin-top:4px;"></div>
+            </div>
+
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px; margin-bottom:8px; display:flex; gap:10px; align-items:flex-start;">
+              <div style="width:32px; height:32px; border-radius:9px; background:var(--red-tint); color:var(--red); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:12.5px; font-weight:600;">3 saved jobs expired</div>
+                <div style="font-size:11px; color:var(--ink-3); margin-top:2px; line-height:1.4;">Atlas Freight QA role and 2 others have been filled or removed.</div>
+                <div style="font-size:10px; color:var(--ink-3); margin-top:4px; font-family:var(--f-mono);">Yesterday</div>
+              </div>
+            </div>
+
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px; display:flex; gap:10px; align-items:flex-start; opacity:.6;">
+              <div style="width:32px; height:32px; border-radius:9px; background:var(--navy-tint); color:var(--navy); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;"><i class="fa-solid fa-star"></i></div>
+              <div>
+                <div style="font-size:12.5px; font-weight:600;">18 new matches</div>
+                <div style="font-size:11px; color:var(--ink-3); margin-top:2px; line-height:1.4;">New Flutter roles added overnight from LinkedIn & Indeed.</div>
+                <div style="font-size:10px; color:var(--ink-3); margin-top:4px; font-family:var(--f-mono);">Yesterday</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Notifications</div>
+    <div class="caption-sub">Interviews, streaks, expiry</div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div class="iconbtn"><i class="fa-solid fa-arrow-left"></i></div>
+            <div style="font-family:var(--f-display); font-weight:700; font-size:15px;">Settings</div>
+            <div style="width:32px;"></div>
+          </div>
+
+          <div class="section-title" style="margin-top:14px;">Job preferences</div>
+          <div class="menurow">
+            <div class="micon"><i class="fa-solid fa-location-dot"></i></div>
+            <div class="mlabel">Preferred locations<div class="msub">Remote, Bengaluru, Hyderabad</div></div>
+            <i class="fa-solid fa-chevron-right mchev"></i>
+          </div>
+          <div class="menurow">
+            <div class="micon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+            <div class="mlabel">Salary range<div class="msub">₹10L – ₹25L per year</div></div>
+            <i class="fa-solid fa-chevron-right mchev"></i>
+          </div>
+          <div class="menurow">
+            <div class="micon"><i class="fa-solid fa-briefcase"></i></div>
+            <div class="mlabel">Job types<div class="msub">Full-time, Contract</div></div>
+            <i class="fa-solid fa-chevron-right mchev"></i>
+          </div>
+
+          <div class="section-title">Notifications</div>
+          <div class="menurow">
+            <div class="micon"><i class="fa-solid fa-bell"></i></div>
+            <div class="mlabel">New job matches</div>
+            <div class="toggle on"><div class="knob"></div></div>
+          </div>
+          <div class="menurow">
+            <div class="micon"><i class="fa-solid fa-fire"></i></div>
+            <div class="mlabel">Streak reminders</div>
+            <div class="toggle on"><div class="knob"></div></div>
+          </div>
+          <div class="menurow">
+            <div class="micon"><i class="fa-solid fa-clock"></i></div>
+            <div class="mlabel">Job expiry alerts</div>
+            <div class="toggle on"><div class="knob"></div></div>
+          </div>
+
+          <div class="section-title">Account</div>
+          <div class="menurow">
+            <div class="micon"><i class="fa-regular fa-file-lines"></i></div>
+            <div class="mlabel">My resumes</div>
+            <i class="fa-solid fa-chevron-right mchev"></i>
+          </div>
+          <div class="menurow" style="border-bottom:none;">
+            <div class="micon" style="background:var(--red-tint); color:var(--red);"><i class="fa-solid fa-right-from-bracket"></i></div>
+            <div class="mlabel" style="color:var(--red);">Sign out</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Settings</div>
+    <div class="caption-sub">Preferences & notifications</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 8: EMPTY STATES ═══ -->
+<div class="section-label">08 · Empty States</div>
+<div class="gallery">
+
+  <!-- EMPTY PIPELINE -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content" style="justify-content:center; align-items:center; text-align:center;">
+          <svg width="72" height="72" viewBox="0 0 72 72" style="margin-bottom:16px;">
+            <circle cx="36" cy="36" r="32" fill="var(--navy-tint)"/>
+            <rect x="22" y="26" width="28" height="20" rx="5" fill="none" stroke="var(--navy)" stroke-width="1.8"/>
+            <line x1="27" y1="32" x2="45" y2="32" stroke="var(--navy)" stroke-width="1.6" stroke-linecap="round"/>
+            <line x1="27" y1="37" x2="39" y2="37" stroke="var(--navy)" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <div style="font-family:var(--f-display); font-weight:700; font-size:16px; color:var(--navy);">No applications yet</div>
+          <div style="font-size:12.5px; color:var(--ink-2); margin-top:7px; line-height:1.6; max-width:220px;">Save jobs from the feed to start tracking your pipeline.</div>
+          <div class="btn-primary" style="margin-top:20px; padding:12px 24px; display:inline-block;">Browse jobs</div>
+        </div>
+        <div class="bottomnav">
+          <div class="navitem"><i class="fa-solid fa-house"></i>Home</div>
+          <div class="navitem"><i class="fa-solid fa-chart-line"></i>Health</div>
+          <div class="navitem active"><i class="fa-solid fa-table-columns"></i>Pipeline</div>
+          <div class="navitem"><i class="fa-regular fa-user"></i>Profile</div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Empty — Pipeline</div>
+    <div class="caption-sub">Direction, not decoration</div>
+  </div>
+
+  <!-- EMPTY SAVED -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content" style="justify-content:center; align-items:center; text-align:center;">
+          <svg width="72" height="72" viewBox="0 0 72 72" style="margin-bottom:16px;">
+            <circle cx="36" cy="36" r="32" fill="var(--amber-tint)"/>
+            <path d="M28 22 L28 50 L36 43 L44 50 L44 22 Z" fill="none" stroke="var(--amber-deep)" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+          <div style="font-family:var(--f-display); font-weight:700; font-size:16px; color:var(--navy);">Nothing saved yet</div>
+          <div style="font-size:12.5px; color:var(--ink-2); margin-top:7px; line-height:1.6; max-width:220px;">Bookmark jobs that interest you — they'll show up here.</div>
+          <div class="btn-primary" style="margin-top:20px; padding:12px 24px; display:inline-block;">Explore feed</div>
+        </div>
+        <div class="bottomnav">
+          <div class="navitem"><i class="fa-solid fa-house"></i>Home</div>
+          <div class="navitem"><i class="fa-solid fa-chart-line"></i>Health</div>
+          <div class="navitem active"><i class="fa-solid fa-bookmark"></i>Saved</div>
+          <div class="navitem"><i class="fa-regular fa-user"></i>Profile</div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Empty — Saved</div>
+    <div class="caption-sub">Bookmark prompt</div>
+  </div>
+
+  <!-- NO RESULTS -->
+  <div class="frame-block">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="background:var(--paper);">
+        <div class="statusbar"><span>9:41</span><span class="right"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+        <div class="content">
+          <div class="header-row">
+            <div class="iconbtn"><i class="fa-solid fa-arrow-left"></i></div>
+            <div style="font-family:var(--f-display); font-weight:700; font-size:14.5px;">Search results</div>
+            <div style="width:32px;"></div>
+          </div>
+          <div style="margin-top:12px;" class="searchbar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span style="color:var(--ink);">Solidity engineer</span>
+          </div>
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+            <svg width="64" height="64" viewBox="0 0 64 64" style="margin-bottom:14px;">
+              <circle cx="32" cy="32" r="28" fill="var(--navy-tint)"/>
+              <circle cx="30" cy="28" r="10" fill="none" stroke="var(--navy)" stroke-width="2"/>
+              <line x1="37" y1="35" x2="46" y2="44" stroke="var(--navy)" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="26" y1="24" x2="34" y2="24" stroke="var(--navy)" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
+            </svg>
+            <div style="font-family:var(--f-display); font-weight:700; font-size:15px; color:var(--navy);">No jobs found</div>
+            <div style="font-size:12px; color:var(--ink-2); margin-top:7px; line-height:1.6; max-width:210px;">Try different keywords or broaden your filters.</div>
+            <div style="font-size:12px; color:var(--amber-deep); font-weight:600; margin-top:14px;">Clear filters</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Empty — No results</div>
+    <div class="caption-sub">Actionable, not apologetic</div>
+  </div>
+
+</div>
+
+</body>
+</html>
