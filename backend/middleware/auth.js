@@ -1,4 +1,4 @@
-import supabase from '../config/supabase.js';
+import { supabaseAuth } from '../config/supabase.js';
 
 const requireAuth = async (req, res, next) => {
   const header = req.headers.authorization || '';
@@ -7,7 +7,7 @@ const requireAuth = async (req, res, next) => {
   }
 
   const token = header.slice(7);
-  const { data, error } = await supabase.auth.getUser(token);
+  const { data, error } = await supabaseAuth.auth.getUser(token);
 
   if (error || !data?.user) {
     return res.status(401).json({ success: false, message: 'Invalid or expired token' });

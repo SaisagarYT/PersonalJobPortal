@@ -12,20 +12,21 @@ const initializeSupabase = async () => {
       projectId: process.env.PROJECT_ID,
     });
 
-    // Prefer service_role key (bypasses RLS for server-side writes).
-    // Falls back to anon key if supabaseServiceKey is not in Infisical yet.
+    const supabaseUrl = supabaseSecrets.secrets.find((s) => s.secretKey === 'supabaseUrl')?.secretValue;
+    const anonKey = supabaseSecrets.secrets.find((s) => s.secretKey === 'supabaseKey')?.secretValue;
     const serviceKey =
-      supabaseSecrets.secrets.find((s) => s.secretKey === 'supabaseServiceKey')?.secretValue ||
-      supabaseSecrets.secrets.find((s) => s.secretKey === 'supabaseKey')?.secretValue;
+      supabaseSecrets.secrets.find((s) => s.secretKey === 'supabaseServiceKey')?.secretValue || anonKey;
 
-    const supabase = createClient(
-      supabaseSecrets.secrets.find((s) => s.secretKey === 'supabaseUrl')?.secretValue,
-      serviceKey,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
+    // DB client — uses service role key to bypass RLS for server-side writes.
+    const supabase = createClient(supabaseUrl, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    // Auth client — uses anon key so supabase.auth.getUser(token) works correctly.
+    const supabaseAuth = createClient(supabaseUrl, anonKey);
 
     console.log('after supabase - Successfully connected');
-    return supabase;
+    return { supabase, supabaseAuth };
   } catch (err) {
     console.error('supabase initialization failed');
     console.error(err.message);
@@ -33,5 +34,6 @@ const initializeSupabase = async () => {
   }
 };
 
-const supabase = await initializeSupabase();
+const { supabase, supabaseAuth } = await initializeSupabase();
 export default supabase;
+export { supabaseAuth };
