@@ -103,7 +103,7 @@ class UnstopScraper extends BaseScraper {
         max: 0,
         level: 'fresher',
       },
-      employment_type: rawData.jobDetail?.type || 'full-time',
+      employment_type: this._normalizeEmploymentType(rawData.jobDetail?.type),
       duration: {
         value: 0,
         unit: 'months',
@@ -121,6 +121,16 @@ class UnstopScraper extends BaseScraper {
       categories: rawData.workfunction?.map((w) => w.name) || [],
       tags: rawData.filters?.map((f) => f.name) || [],
     };
+  }
+
+  _normalizeEmploymentType(raw) {
+    const t = (raw || '').toLowerCase();
+    if (t.includes('full') || t === 'in_office' || t === 'office') return 'full-time';
+    if (t.includes('part')) return 'part-time';
+    if (t.includes('contract')) return 'contract';
+    if (t.includes('freelance')) return 'freelance';
+    if (t.includes('intern')) return 'internship';
+    return 'full-time';
   }
 
   /**
