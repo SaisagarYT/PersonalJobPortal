@@ -79,6 +79,22 @@ class Opportunity {
     required this.fetchedAt,
   });
 
+  /// Parses the flat row shape returned by wishlist/application join queries
+  /// where compensation fields are top-level columns instead of nested object.
+  factory Opportunity.fromFlatJson(Map<String, dynamic> json) {
+    final nested = <String, dynamic>{
+      ...json,
+      'compensation': {
+        'min': json['compensation_min'] ?? 0,
+        'max': json['compensation_max'] ?? 0,
+        'currency': json['compensation_currency'] ?? 'INR',
+        'type': json['compensation_type'] ?? 'monthly',
+        'is_paid': json['is_paid'] ?? false,
+      },
+    };
+    return Opportunity.fromJson(nested);
+  }
+
   factory Opportunity.fromJson(Map<String, dynamic> json) {
     List<String> parseStringList(dynamic raw) {
       if (raw == null) return [];
@@ -112,7 +128,14 @@ class Opportunity {
       return [];
     }
 
-    final comp = json['compensation'];
+    // Backend returns either nested objects (fromRow) or flat columns (join queries).
+    // Support both shapes for company, compensation, experience, duration, application.
+    final company = json['company'] as Map<String, dynamic>?;
+    final comp = json['compensation'] as Map<String, dynamic>?;
+    final experience = json['experience'] as Map<String, dynamic>?;
+    final duration = json['duration'] as Map<String, dynamic>?;
+    final application = json['application'] as Map<String, dynamic>?;
+
     return Opportunity(
       id: json['id']?.toString() ?? '',
       externalId: json['external_id']?.toString() ?? '',
@@ -121,25 +144,31 @@ class Opportunity {
       title: json['title']?.toString() ?? '',
       type: json['type']?.toString() ?? 'internship',
       employmentType: json['employment_type']?.toString() ?? '',
-      companyName: json['company_name']?.toString() ?? '',
-      companyLogo: json['company_logo']?.toString() ?? '',
+      companyName: company?['name']?.toString() ?? json['company_name']?.toString() ?? '',
+      companyLogo: company?['logo']?.toString() ?? json['company_logo']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
       shortDescription: json['short_description']?.toString() ?? '',
-      compensation: comp != null && comp is Map<String, dynamic>
+      compensation: comp != null
           ? Compensation.fromJson(comp)
-          : const Compensation(min: 0, max: 0, currency: 'INR', type: 'monthly', isPaid: false),
+          : Compensation(
+              min: json['compensation_min'] as int? ?? 0,
+              max: json['compensation_max'] as int? ?? 0,
+              currency: json['compensation_currency']?.toString() ?? 'INR',
+              type: json['compensation_type']?.toString() ?? 'monthly',
+              isPaid: json['is_paid'] as bool? ?? false,
+            ),
       locations: parseLocations(json['locations']),
       skills: parseStringList(json['skills']),
       categories: parseStringList(json['categories']),
-      experienceMin: json['experience_min'] as int? ?? 0,
-      experienceMax: json['experience_max'] as int? ?? 0,
-      experienceLevel: json['experience_level']?.toString() ?? 'fresher',
-      durationValue: json['duration_value'] as int? ?? 0,
-      durationUnit: json['duration_unit']?.toString() ?? 'months',
-      deadline: json['deadline']?.toString(),
-      applicantsCount: json['applicants_count'] as int? ?? 0,
-      isActive: json['is_active'] as bool? ?? true,
-      applyUrl: json['apply_url']?.toString() ?? '',
+      experienceMin: (experience?['min'] ?? json['experience_min']) as int? ?? 0,
+      experienceMax: (experience?['max'] ?? json['experience_max']) as int? ?? 0,
+      experienceLevel: experience?['level']?.toString() ?? json['experience_level']?.toString() ?? 'fresher',
+      durationValue: (duration?['value'] ?? json['duration_value']) as int? ?? 0,
+      durationUnit: duration?['unit']?.toString() ?? json['duration_unit']?.toString() ?? 'months',
+      deadline: application?['deadline']?.toString() ?? json['deadline']?.toString(),
+      applicantsCount: (application?['applicants_count'] ?? json['applicants_count']) as int? ?? 0,
+      isActive: (application?['is_active'] ?? json['is_active']) as bool? ?? true,
+      applyUrl: application?['apply_url']?.toString() ?? json['apply_url']?.toString() ?? '',
       postedDate: json['posted_date']?.toString(),
       fetchedAt: json['fetched_at']?.toString() ?? '',
     );

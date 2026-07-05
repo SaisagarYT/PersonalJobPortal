@@ -1,0 +1,74 @@
+# ── Node / Backend ───────────────────────────────────────────────────────────
+node_modules/
+backend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.pid
+*.seed
+*.pid.lock
+backend/server.log
+backend/server.pid
+
+# ── Environment / Secrets ────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+
+# ── Flutter / Dart ───────────────────────────────────────────────────────────
+# Build output
+**/build/
+frontend/orbit/build/
+
+# Dart tool cache
+**/.dart_tool/
+.dart_tool/
+
+# Pub cache
+.pub-cache/
+.pub/
+
+# Flutter plugins
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Android Gradle cache
+**/.gradle/
+frontend/orbit/android/.gradle/
+
+# Android build outputs
+frontend/orbit/android/app/debug/
+frontend/orbit/android/app/profile/
+frontend/orbit/android/app/release/
+frontend/orbit/android/local.properties
+
+# iOS build outputs
+frontend/orbit/ios/.symlinks/
+frontend/orbit/ios/Flutter/flutter_export_environment.sh
+frontend/orbit/ios/Flutter/Generated.xcconfig
+frontend/orbit/ios/Pods/
+frontend/orbit/ios/.generated/
+
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# VS Code (keep .vscode if you want, remove to ignore)
+# .vscode/
+
+# Coverage
+coverage/
+
+# Miscellaneous
+*.log
+*.class
+*.pyc
+*.swp
+.history/
