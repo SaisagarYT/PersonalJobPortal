@@ -21,7 +21,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(ProfileLoading());
     try {
       final resp = await _api.dio.get('/user/profile');
-      final data = resp.data['data'] as Map<String, dynamic>? ?? {};
+      final data = resp.data['profile'] as Map<String, dynamic>? ?? {};
       emit(ProfileLoaded(profile: UserProfile.fromJson(data)));
     } on DioException catch (e) {
       final msg = e.response?.data?['message'] ?? 'Failed to load profile.';
@@ -43,7 +43,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       if (event.skills != null) payload['skills'] = event.skills;
 
       final resp = await _api.dio.patch('/user/profile', data: payload);
-      final data = resp.data['data'] as Map<String, dynamic>? ?? {};
+      final data = resp.data['profile'] as Map<String, dynamic>? ?? {};
       emit(ProfileLoaded(profile: UserProfile.fromJson(data)));
     } on DioException catch (e) {
       final msg = e.response?.data?['message'] ?? 'Failed to save profile.';

@@ -22,11 +22,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
     try {
       final resp = await _api.dio.get('/auth/me');
-      final user = resp.data['data'];
+      final user = resp.data['user'] as Map<String, dynamic>? ?? {};
       emit(AuthAuthenticated(
-        userId: user['id'] ?? '',
-        email: user['email'] ?? '',
-        name: user['name'] ?? '',
+        userId: user['id']?.toString() ?? '',
+        email: user['email']?.toString() ?? '',
+        name: user['user_metadata']?['name']?.toString() ?? user['name']?.toString() ?? '',
       ));
     } catch (_) {
       await _api.clearToken();
@@ -42,12 +42,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         'password': event.password,
       });
       final body = resp.data;
-      await _api.saveToken(body['data']['session']['access_token'] as String);
-      final user = body['data']['user'];
+      await _api.saveToken(body['token'] as String);
+      final user = body['user'] as Map<String, dynamic>? ?? {};
       emit(AuthAuthenticated(
-        userId: user['id'] ?? '',
-        email: user['email'] ?? '',
-        name: user['name'] ?? '',
+        userId: user['id']?.toString() ?? '',
+        email: user['email']?.toString() ?? '',
+        name: user['user_metadata']?['name']?.toString() ?? user['name']?.toString() ?? '',
       ));
     } on DioException catch (e) {
       final msg = e.response?.data?['message'] ?? 'Login failed. Check your credentials.';
@@ -66,13 +66,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         'name': event.name,
       });
       final body = resp.data;
-      final session = body['data']['session'];
-      if (session != null) {
-        await _api.saveToken(session['access_token'] as String);
-        final user = body['data']['user'];
+      final token = body['token'];
+      if (token != null) {
+        await _api.saveToken(token as String);
+        final user = body['user'] as Map<String, dynamic>? ?? {};
         emit(AuthAuthenticated(
-          userId: user['id'] ?? '',
-          email: user['email'] ?? '',
+          userId: user['id']?.toString() ?? '',
+          email: user['email']?.toString() ?? '',
           name: event.name,
         ));
       } else {

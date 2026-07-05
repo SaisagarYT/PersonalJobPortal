@@ -41,14 +41,14 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     try {
       final params = <String, dynamic>{
         'page': page,
-        'limit': _pageSize,
+        'per_page': _pageSize,
       };
       if (_activeType != null) params['type'] = _activeType;
       if (_activeSource != null) params['source'] = _activeSource;
 
       final resp = await _api.dio.get('/opportunities', queryParameters: params);
       final body = resp.data;
-      final rawList = body['data'] as List? ?? [];
+      final rawList = body['opportunities'] as List? ?? [];
       final loaded = rawList
           .map((e) => Opportunity.fromJson(e as Map<String, dynamic>))
           .toList();
