@@ -139,8 +139,7 @@ const queryOpportunities = async ({
   if (remote === true) query = query.contains('locations', [{ is_remote: true }]);
 
   if (location) {
-    // Search inside the JSON array for matching city/state
-    query = query.or(`locations.cs.{"city":"${location}"},locations.ilike.%${location}%`);
+    query = query.ilike('locations', `%${location}%`);
   }
 
   if (skills && skills.length > 0) {
@@ -207,16 +206,22 @@ const getById = async (id) => {
  * Count rows per source — useful for dashboards.
  */
 const getSourceCounts = async () => {
-  const { data, error } = await supabase
-    .from('opportunities')
-    .select('source')
-    .then(({ data, error }) => ({ data, error }));
+  const { data, error } = await supabase.rpc('get_source_counts');
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    // Fallback: manual count if RPC not available
+    const { data: rows, error: err2 } = await supabase.from('opportunities').select('source');
+    if (err2) throw new Error(err2.message);
+    const counts = {};
+    (rows || []).forEach((row) => {
+      counts[row.source] = (counts[row.source] || 0) + 1;
+    });
+    return counts;
+  }
 
   const counts = {};
   (data || []).forEach((row) => {
-    counts[row.source] = (counts[row.source] || 0) + 1;
+    counts[row.source] = row.count;
   });
   return counts;
 };

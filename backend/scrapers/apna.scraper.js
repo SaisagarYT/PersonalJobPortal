@@ -136,7 +136,9 @@ class ApnaScraper extends BaseScraper {
 
         // Extract job ID from URL pattern: /job/city/title-ID
         const idMatch = href.match(/-(\d+)$/);
-        const externalId = idMatch ? idMatch[1] : `apna_${i}`;
+        if (!idMatch) return; // skip cards with no parseable ID
+
+        const externalId = idMatch[1];
 
         const opportunity = {
           external_id: externalId,

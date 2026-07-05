@@ -86,8 +86,8 @@ class UnstopScraper extends BaseScraper {
       compensation: {
         min: rawData.jobDetail?.min_salary || 0,
         max: rawData.jobDetail?.max_salary || rawData.jobDetail?.min_salary || 0,
-        currency: rawData.jobDetail?.currency || 'INR',
-        type: 'monthly',
+        currency: 'INR',
+        type: rawData.jobDetail?.pay_in || 'monthly',
         is_paid: rawData.jobDetail?.paid_unpaid === 'paid',
       },
       locations:

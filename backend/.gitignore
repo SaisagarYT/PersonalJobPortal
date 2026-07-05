@@ -34,3 +34,6 @@ coverage/
 *.jpg
 *.jpeg
 !assets/**
+
+# Runtime files
+*.pid

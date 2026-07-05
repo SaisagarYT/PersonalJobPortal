@@ -67,6 +67,27 @@ class AggregationService {
   }
 
   /**
+   * Interleave results from multiple sources so no single source dominates a page.
+   * Round-robins across source buckets: unstop[0], internshala[0], apna[0], unstop[1], ...
+   */
+  interleaveBySource(opportunities) {
+    const buckets = {};
+    for (const opp of opportunities) {
+      if (!buckets[opp.source]) buckets[opp.source] = [];
+      buckets[opp.source].push(opp);
+    }
+    const sources = Object.keys(buckets);
+    const result = [];
+    let i = 0;
+    while (result.length < opportunities.length) {
+      const source = sources[i % sources.length];
+      if (buckets[source].length > 0) result.push(buckets[source].shift());
+      i++;
+    }
+    return result;
+  }
+
+  /**
    * Deduplicate opportunities based on title and company
    * @param {Array} opportunities - Array of opportunities
    */

@@ -55,8 +55,11 @@ const scrapeMultiSource = async (req, res, next) => {
         console.error('[scraper] DB persist failed:', err.message);
       });
 
-    // Sort results
-    filtered = aggregationService.sortOpportunities(filtered, sort_by);
+    // Sort results — for multi-source, interleave by source so no single source dominates a page
+    filtered =
+      sort_by === 'posted_date'
+        ? aggregationService.interleaveBySource(filtered)
+        : aggregationService.sortOpportunities(filtered, sort_by);
 
     // Paginate
     const paginated = aggregationService.paginate(filtered, page, per_page);
