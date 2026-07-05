@@ -12,9 +12,16 @@ const initializeSupabase = async () => {
       projectId: process.env.PROJECT_ID,
     });
 
+    // Prefer service_role key (bypasses RLS for server-side writes).
+    // Falls back to anon key if supabaseServiceKey is not in Infisical yet.
+    const serviceKey =
+      supabaseSecrets.secrets.find((s) => s.secretKey === 'supabaseServiceKey')?.secretValue ||
+      supabaseSecrets.secrets.find((s) => s.secretKey === 'supabaseKey')?.secretValue;
+
     const supabase = createClient(
-      supabaseSecrets.secrets.find((s) => s.secretKey == 'supabaseUrl')?.secretValue,
-      supabaseSecrets.secrets.find((s) => s.secretKey == 'supabaseKey')?.secretValue
+      supabaseSecrets.secrets.find((s) => s.secretKey === 'supabaseUrl')?.secretValue,
+      serviceKey,
+      { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
     console.log('after supabase - Successfully connected');
