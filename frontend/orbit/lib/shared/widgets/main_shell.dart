@@ -2,7 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/feed/bloc/feed_bloc.dart';
 import '../../features/feed/screens/feed_screen.dart';
-import '../../core/theme/app_colors.dart';
+import '../../features/wishlist/bloc/wishlist_bloc.dart';
+import '../../features/wishlist/bloc/wishlist_event.dart';
+import '../../features/wishlist/screens/wishlist_screen.dart';
+import '../../features/tracker/bloc/tracker_bloc.dart';
+import '../../features/tracker/bloc/tracker_event.dart';
+import '../../features/tracker/screens/tracker_screen.dart';
+import '../../features/profile/bloc/profile_bloc.dart';
+import '../../features/profile/bloc/profile_event.dart';
+import '../../features/profile/screens/profile_screen.dart';
+import '../../features/auth/bloc/auth_bloc.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -21,39 +30,45 @@ class _MainShellState extends State<MainShell> {
     _Tab(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profile'),
   ];
 
-  Widget _buildPage(int index) {
-    switch (index) {
-      case 0:
-        return BlocProvider(
-          create: (_) => FeedBloc(),
-          child: const FeedScreen(),
-        );
-      case 1:
-        return const _PlaceholderPage(title: 'Saved', icon: Icons.bookmark_outline);
-      case 2:
-        return const _PlaceholderPage(title: 'Tracker', icon: Icons.view_kanban_outlined);
-      case 3:
-        return const _PlaceholderPage(title: 'Profile', icon: Icons.person_outline);
-      default:
-        return const SizedBox();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: List.generate(4, _buildPage),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (i) => setState(() => _currentIndex = i),
-        items: _tabs.map((t) => BottomNavigationBarItem(
-          icon: Icon(t.icon),
-          activeIcon: Icon(t.activeIcon),
-          label: t.label,
-        )).toList(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => FeedBloc()),
+        BlocProvider(create: (_) => WishlistBloc()..add(WishlistLoadRequested())),
+        BlocProvider(create: (_) => TrackerBloc()),
+        BlocProvider(
+          create: (ctx) => ProfileBloc(authBloc: ctx.read<AuthBloc>())
+            ..add(ProfileLoadRequested()),
+        ),
+      ],
+      child: Scaffold(
+        body: IndexedStack(
+          index: _currentIndex,
+          children: const [
+            FeedScreen(),
+            WishlistScreen(),
+            TrackerScreen(),
+            ProfileScreen(),
+          ],
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (i) {
+            setState(() => _currentIndex = i);
+            // Reload tracker on tab switch so it's always fresh
+            if (i == 2) {
+              context.read<TrackerBloc>().add(TrackerLoadRequested());
+            }
+          },
+          items: _tabs
+              .map((t) => BottomNavigationBarItem(
+                    icon: Icon(t.icon),
+                    activeIcon: Icon(t.activeIcon),
+                    label: t.label,
+                  ))
+              .toList(),
+        ),
       ),
     );
   }
@@ -64,35 +79,4 @@ class _Tab {
   final IconData activeIcon;
   final String label;
   const _Tab({required this.icon, required this.activeIcon, required this.label});
-}
-
-class _PlaceholderPage extends StatelessWidget {
-  final String title;
-  final IconData icon;
-
-  const _PlaceholderPage({required this.title, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 56, color: AppColors.grey400),
-            const SizedBox(height: 12),
-            Text(
-              '$title coming soon',
-              style: const TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-                color: AppColors.grey600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

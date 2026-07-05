@@ -7,6 +7,9 @@ import '../bloc/feed_event.dart';
 import '../bloc/feed_state.dart';
 import '../widgets/opportunity_card.dart';
 import '../../job_detail/screens/job_detail_screen.dart';
+import '../../wishlist/bloc/wishlist_bloc.dart';
+import '../../wishlist/bloc/wishlist_event.dart';
+import '../../wishlist/bloc/wishlist_state.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -169,13 +172,32 @@ class _FeedScreenState extends State<FeedScreen> {
                       );
                     }
                     final opp = state.opportunities[i];
-                    return OpportunityCard(
-                      opportunity: opp,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => JobDetailScreen(opportunity: opp),
-                        ),
-                      ),
+                    return BlocBuilder<WishlistBloc, WishlistState>(
+                      buildWhen: (prev, next) {
+                        final prevSaved = prev is WishlistLoaded && prev.savedIds.contains(opp.id);
+                        final nextSaved = next is WishlistLoaded && next.savedIds.contains(opp.id);
+                        return prevSaved != nextSaved;
+                      },
+                      builder: (ctx, wState) {
+                        final saved = wState is WishlistLoaded && wState.savedIds.contains(opp.id);
+                        return OpportunityCard(
+                          opportunity: opp,
+                          isSaved: saved,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => JobDetailScreen(opportunity: opp),
+                            ),
+                          ),
+                          onSave: () {
+                            final wb = ctx.read<WishlistBloc>();
+                            if (saved) {
+                              wb.add(WishlistRemoveRequested(opp.id));
+                            } else {
+                              wb.add(WishlistSaveRequested(opp.id));
+                            }
+                          },
+                        );
+                      },
                     );
                   },
                 ),

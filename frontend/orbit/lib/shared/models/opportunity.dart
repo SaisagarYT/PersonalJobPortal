@@ -79,6 +79,22 @@ class Opportunity {
     required this.fetchedAt,
   });
 
+  /// Parses the flat row shape returned by wishlist/application join queries
+  /// where compensation fields are top-level columns instead of nested object.
+  factory Opportunity.fromFlatJson(Map<String, dynamic> json) {
+    final nested = <String, dynamic>{
+      ...json,
+      'compensation': {
+        'min': json['compensation_min'] ?? 0,
+        'max': json['compensation_max'] ?? 0,
+        'currency': json['compensation_currency'] ?? 'INR',
+        'type': json['compensation_type'] ?? 'monthly',
+        'is_paid': json['is_paid'] ?? false,
+      },
+    };
+    return Opportunity.fromJson(nested);
+  }
+
   factory Opportunity.fromJson(Map<String, dynamic> json) {
     List<String> parseStringList(dynamic raw) {
       if (raw == null) return [];
