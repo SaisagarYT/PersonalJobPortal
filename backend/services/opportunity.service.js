@@ -1,5 +1,14 @@
 import supabase from '../config/supabase.js';
 
+// Allowed DB enum values — anything else maps to the default
+const VALID_COMP_TYPES = new Set(['monthly', 'annually', 'lumpsum', 'hourly']);
+const VALID_EMP_TYPES = new Set(['full-time', 'part-time', 'contract', 'freelance', 'internship']);
+const VALID_OPP_TYPES = new Set(['internship', 'job', 'competition']);
+
+const safeCompType = (v) => (VALID_COMP_TYPES.has(v) ? v : 'monthly');
+const safeEmpType = (v) => (VALID_EMP_TYPES.has(v) ? v : 'full-time');
+const safeOppType = (v) => (VALID_OPP_TYPES.has(v) ? v : 'job');
+
 /**
  * Map a unified-model opportunity object to a flat DB row.
  */
@@ -8,8 +17,8 @@ const toRow = (opp) => ({
   source: opp.source || '',
   source_url: opp.source_url || '',
   title: opp.title || '',
-  type: opp.type || 'internship',
-  employment_type: opp.employment_type || '',
+  type: safeOppType(opp.type),
+  employment_type: safeEmpType(opp.employment_type),
   company_name: opp.company?.name || '',
   company_logo: opp.company?.logo || '',
   company_website: opp.company?.website || '',
@@ -18,7 +27,7 @@ const toRow = (opp) => ({
   compensation_min: opp.compensation?.min || 0,
   compensation_max: opp.compensation?.max || 0,
   compensation_currency: opp.compensation?.currency || 'INR',
-  compensation_type: opp.compensation?.type || 'monthly',
+  compensation_type: safeCompType(opp.compensation?.type),
   is_paid: opp.compensation?.is_paid || false,
   locations: JSON.stringify(opp.locations || []),
   skills: JSON.stringify(opp.skills || []),
