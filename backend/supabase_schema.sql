@@ -53,7 +53,7 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 
 do $$ begin
-  create type source_enum as enum ('unstop', 'internshala', 'apna', 'linkedin');
+  create type source_enum as enum ('unstop', 'internshala', 'apna', 'linkedin', 'adzuna');
 exception when duplicate_object then null; end $$;
 
 
