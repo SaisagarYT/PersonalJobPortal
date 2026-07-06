@@ -189,7 +189,7 @@ class _FeedScreenState extends State<FeedScreen> {
                               if (saved) {
                                 wb.add(WishlistRemoveRequested(opp.id));
                               } else {
-                                wb.add(WishlistSaveRequested(opp.id));
+                                wb.add(WishlistSaveRequested(opp.id, opp));
                               }
                             },
                           );

@@ -34,13 +34,22 @@ class WishlistBloc extends Bloc<WishlistEvent, WishlistState> {
   }
 
   Future<void> _onSave(WishlistSaveRequested event, Emitter<WishlistState> emit) async {
-    // Optimistic update regardless of current state
     final current = state;
+    // Optimistic update: add to both items and savedIds immediately
     if (current is WishlistLoaded) {
-      emit(current.copyWith(savedIds: {...current.savedIds, event.opportunityId}));
+      final alreadyIn = current.items.any((o) => o.id == event.opportunityId);
+      final newItems = alreadyIn
+          ? current.items
+          : [event.opportunity, ...current.items];
+      emit(current.copyWith(
+        items: newItems,
+        savedIds: {...current.savedIds, event.opportunityId},
+      ));
     } else {
-      // Not loaded yet — emit a minimal loaded state so the bookmark icon updates
-      emit(WishlistLoaded(items: const [], savedIds: {event.opportunityId}));
+      emit(WishlistLoaded(
+        items: [event.opportunity],
+        savedIds: {event.opportunityId},
+      ));
     }
     try {
       await _api.dio.post('/wishlist', data: {'opportunity_id': event.opportunityId});
@@ -48,8 +57,10 @@ class WishlistBloc extends Bloc<WishlistEvent, WishlistState> {
       // Revert on failure
       final updated = state;
       if (updated is WishlistLoaded) {
-        final ids = {...updated.savedIds}..remove(event.opportunityId);
-        emit(updated.copyWith(savedIds: ids));
+        emit(updated.copyWith(
+          items: updated.items.where((o) => o.id != event.opportunityId).toList(),
+          savedIds: {...updated.savedIds}..remove(event.opportunityId),
+        ));
       }
     }
   }
