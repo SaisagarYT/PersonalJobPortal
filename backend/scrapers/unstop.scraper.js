@@ -1,7 +1,11 @@
 import axios from 'axios';
-import playwright from 'playwright';
 import { load } from 'cheerio';
 import BaseScraper from './base.scraper.js';
+
+const ROLES = ['web-development', 'mobile-development', 'data-science', 'software-engineering'];
+const TYPES = ['internships', 'jobs', 'competitions'];
+const PER_PAGE = 20;
+const MAX_PAGES = 10; // safety cap per role+type combo
 
 class UnstopScraper extends BaseScraper {
   constructor() {
@@ -10,79 +14,117 @@ class UnstopScraper extends BaseScraper {
   }
 
   /**
-   * Scrape opportunities from Unstop
-   * @param {Object} filters - { type: 'jobs'|'internships'|'competitions', page, pagination, roles, userType }
+   * Fetch all pages for a single role+type until the API returns empty or errors.
+   * Returns raw opportunity objects (not yet adapted).
    */
-  async scrape(filters = {}) {
+  async _fetchAllPages(type, role) {
+    const all = [];
+    let page = 1;
+
+    while (page <= MAX_PAGES) {
+      try {
+        const resp = await axios.get(this.baseUrl, {
+          params: {
+            opportunity: type,
+            page,
+            per_page: PER_PAGE,
+            roles: role,
+            usertype: 'students',
+            oppstatus: 'open',
+            sortBy: 'recent',
+            orderBy: 'desc',
+            filter_condition: '',
+          },
+          timeout: 12000,
+        });
+
+        const items = resp.data?.data?.data;
+        if (!items || items.length === 0) break; // no more results
+
+        all.push(...items);
+        console.log(`[unstop] ${type}/${role} page ${page}: +${items.length} (total ${all.length})`);
+
+        // If we got fewer than per_page, this is the last page
+        if (items.length < PER_PAGE) break;
+        page++;
+      } catch (err) {
+        console.warn(`[unstop] ${type}/${role} page ${page} failed: ${err.message} — stopping`);
+        break;
+      }
+    }
+
+    return all;
+  }
+
+  /**
+   * Main scrape: collect all roles × types in parallel, deduplicate by id, adapt.
+   */
+  async scrape() {
     try {
-      const {
-        type = 'internships',
-        page = 1,
-        pagination = 18,
-        roles = 'ai-engineer',
-        userType = 'students',
-      } = filters;
-
-      // Normalize type to plural for Unstop API
-      let unstopType = type.toLowerCase();
-      if (!unstopType.endsWith('s')) {
-        unstopType += 's'; // internship -> internships, job -> jobs
+      const tasks = [];
+      for (const type of TYPES) {
+        for (const role of ROLES) {
+          tasks.push({ type, role });
+        }
       }
 
-      const response = await axios.get(this.baseUrl, {
-        params: {
-          opportunity: unstopType,
-          page,
-          per_page: pagination,
-          roles,
-          usertype: userType,
-          oppstatus: 'open',
-          sortBy: '',
-          orderBy: '',
-          filter_condition: '',
-          undefined: true,
-        },
-        timeout: 10000,
-      });
+      // Run all combos in parallel (12 tasks)
+      const results = await Promise.all(
+        tasks.map(({ type, role }) => this._fetchAllPages(type, role))
+      );
 
-      if (!response.data || !response.data.data || !response.data.data.data) {
-        throw new Error('Invalid response from Unstop API');
+      // Flatten and deduplicate by id
+      const seen = new Set();
+      const unique = [];
+      for (const batch of results) {
+        for (const item of batch) {
+          const id = String(item.id);
+          if (!seen.has(id)) {
+            seen.add(id);
+            unique.push(item);
+          }
+        }
       }
 
-      const opportunities = response.data.data.data;
-      this.logSuccess(opportunities.length);
-
-      // Pass the normalized type so adaptToUnifiedModel can use it for consistent typing
-      const normalizedType = unstopType.replace(/s$/, ''); // internships -> internship
+      console.log(`[unstop] Total unique after dedup: ${unique.length}`);
+      this.logSuccess(unique.length);
 
       return {
         success: true,
         source: this.source,
-        opportunities: opportunities.map((opp) => this.adaptToUnifiedModel(opp, normalizedType)),
-        count: opportunities.length,
+        opportunities: unique.map((opp) => this.adaptToUnifiedModel(opp)),
+        count: unique.length,
       };
     } catch (error) {
       return this.handleError(error);
     }
   }
 
-  /**
-   * Adapt Unstop data to unified model
-   */
-  adaptToUnifiedModel(rawData, requestedType = 'internship') {
+  adaptToUnifiedModel(rawData) {
+    // Infer type from which Unstop category this belongs to
+    const title = (rawData.title || '').toLowerCase();
+    let type = 'job';
+    if (rawData.opportunity_type === 'competition' || title.includes('hackathon') || title.includes('competition')) {
+      type = 'competition';
+    } else if (rawData.opportunity_type === 'internship' || rawData.jobDetail?.type === 'internship') {
+      type = 'internship';
+    }
+
     return {
       external_id: String(rawData.id),
       source: this.source,
       source_url: rawData.short_url || '',
       title: rawData.title || '',
-      type: requestedType,
+      type,
       company: {
         name: rawData.organisation?.name || '',
         logo: rawData.organisation?.logoUrl || '',
         website: '',
       },
-      description: load(rawData.details).text().trim() || '',
-      short_description: load(rawData.details).text().trim().substring(0, 200) || '',
+      description: rawData.details ? load(rawData.details).text().trim() : '',
+      short_description: rawData.details
+        ? load(rawData.details).text().trim().substring(0, 200)
+        : '',
       compensation: {
         min: rawData.jobDetail?.min_salary || 0,
         max: rawData.jobDetail?.max_salary || rawData.jobDetail?.min_salary || 0,
@@ -95,19 +137,12 @@ class UnstopScraper extends BaseScraper {
           city: loc.city || '',
           state: loc.state || '',
           country: loc.country || 'India',
-          is_remote: loc.city?.toLowerCase().includes('remote') || false,
+          is_remote: (loc.city || '').toLowerCase().includes('remote'),
         })) || [],
-      skills: rawData.required_skills?.map((skill) => skill.skill) || [],
-      experience: {
-        min: 0,
-        max: 0,
-        level: 'fresher',
-      },
+      skills: rawData.required_skills?.map((s) => s.skill) || [],
+      experience: { min: 0, max: 0, level: 'fresher' },
       employment_type: this._normalizeEmploymentType(rawData.jobDetail?.type),
-      duration: {
-        value: 0,
-        unit: 'months',
-      },
+      duration: { value: 0, unit: 'months' },
       application: {
         deadline: rawData.end_date || '',
         applicants_count: rawData.registerCount || 0,
@@ -131,39 +166,6 @@ class UnstopScraper extends BaseScraper {
     if (t.includes('freelance')) return 'freelance';
     if (t.includes('intern')) return 'internship';
     return 'full-time';
-  }
-
-  /**
-   * Get detailed overview of a specific opportunity
-   */
-  async getDetails(opportunityId) {
-    try {
-      const browser = await playwright.chromium.launch({ headless: true });
-      const context = await browser.newContext();
-      const page = await context.newPage();
-
-      await page.goto(`https://unstop.com/jobs/${opportunityId}`, {
-        waitUntil: 'networkidle',
-      });
-
-      const html = await page.content();
-      const $ = load(html);
-
-      const details = {
-        external_id: opportunityId,
-        title: $('.my_sect h1').text().trim(),
-        company_name: $('.my_sect h2 a').text().trim(),
-        company_logo: $('.logo img').attr('src'),
-        city: $('.interlinked-value em').text().trim(),
-        description: $('.comp-detail.un_editor_text_live').text().trim().replace(/\s+/g, ' '),
-      };
-
-      await browser.close();
-      return details;
-    } catch (error) {
-      console.error(`[${this.source}] Failed to get details:`, error.message);
-      return null;
-    }
   }
 }
 

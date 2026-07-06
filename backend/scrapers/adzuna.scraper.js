@@ -1,71 +1,103 @@
 import axios from 'axios';
 import BaseScraper from './base.scraper.js';
 
-/**
- * Adzuna scraper — uses Adzuna's official Jobs API.
- * Free tier: 250 requests/day. Covers jobs and internships across India.
- * Sign up at https://developer.adzuna.com/ to get app_id and app_key.
- * Store them in Infisical as: adzunaAppId, adzunaAppKey
- */
+// Search terms — one request each, sorted by date, page 1 (50 results)
+const SEARCHES = [
+  'web developer',
+  'frontend developer',
+  'backend developer',
+  'flutter developer',
+  'fullstack developer',
+  'react developer',
+  'node.js developer',
+  'python developer',
+  'software engineer',
+  'internship developer',
+];
+
+const RESULTS_PER_SEARCH = 50;
+const MAX_AGE_DAYS = 1; // only keep jobs posted today or yesterday
+
 class AdzunaScraper extends BaseScraper {
   constructor() {
     super('adzuna');
     this.baseUrl = 'https://api.adzuna.com/v1/api/jobs/in/search';
-    this.appId = process.env.ADZUNA_APP_ID;
-    this.appKey = process.env.ADZUNA_APP_KEY;
   }
 
-  async scrape(filters = {}) {
-    if (!this.appId || !this.appKey) {
+  _getKeys() {
+    const appId = process.env.ADZUNA_APP_ID;
+    const appKey = process.env.ADZUNA_APP_KEY;
+    return { appId, appKey };
+  }
+
+  async scrape() {
+    const { appId, appKey } = this._getKeys();
+
+    if (!appId || !appKey) {
       console.warn('[adzuna] ADZUNA_APP_ID or ADZUNA_APP_KEY not set — skipping');
       return { success: true, source: this.source, opportunities: [], count: 0 };
     }
 
     try {
-      const { type = '', location = 'india', page = 1 } = filters;
+      // Fetch all search terms in parallel
+      const results = await Promise.all(
+        SEARCHES.map((term) => this._fetchSearch(term, appId, appKey))
+      );
 
-      // Build search query based on type
-      let what = 'software developer';
-      if (type === 'internship') what = 'internship software developer';
-      else if (type === 'job') what = 'software developer engineer';
-      else if (type === 'competition') what = 'hackathon competition developer';
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - MAX_AGE_DAYS);
 
-      const [jobsRes, internRes] = await Promise.all([
-        this._fetch(what, location, page, 15),
-        type === '' ? this._fetch('internship fresher', location, page, 5) : Promise.resolve([]),
-      ]);
+      // Flatten, filter to recent, deduplicate by id
+      const seen = new Set();
+      const unique = [];
 
-      const all = [...jobsRes, ...internRes];
-      this.logSuccess(all.length);
+      for (const batch of results) {
+        for (const job of batch) {
+          const id = String(job.id);
+          if (seen.has(id)) continue;
+
+          // Filter to today/yesterday only
+          const posted = job.created ? new Date(job.created) : null;
+          if (posted && posted < cutoff) continue;
+
+          seen.add(id);
+          unique.push(job);
+        }
+      }
+
+      console.log(`[adzuna] Total unique recent jobs: ${unique.length}`);
+      this.logSuccess(unique.length);
 
       return {
         success: true,
         source: this.source,
-        opportunities: all.map((j) => this.adaptToUnifiedModel(j)),
-        count: all.length,
+        opportunities: unique.map((j) => this.adaptToUnifiedModel(j)),
+        count: unique.length,
       };
     } catch (error) {
       return this.handleError(error);
     }
   }
 
-  async _fetch(what, where, page, count) {
+  async _fetchSearch(what, appId, appKey) {
     try {
-      const resp = await axios.get(`${this.baseUrl}/${page}`, {
+      const resp = await axios.get(`${this.baseUrl}/1`, {
         params: {
-          app_id: this.appId,
-          app_key: this.appKey,
-          results_per_page: count,
+          app_id: appId,
+          app_key: appKey,
+          results_per_page: RESULTS_PER_SEARCH,
           what,
-          where,
-          content_type: 'application/json',
+          where: 'india',
           sort_by: 'date',
+          'content-type': 'application/json',
         },
         timeout: 15000,
       });
-      return resp.data?.results || [];
+      const results = resp.data?.results || [];
+      console.log(`[adzuna] "${what}": ${results.length} results`);
+      return results;
     } catch (err) {
-      console.error(`[adzuna] fetch failed: ${err.message}`);
+      console.warn(`[adzuna] "${what}" failed: ${err.message}`);
       return [];
     }
   }
@@ -75,10 +107,22 @@ class AdzunaScraper extends BaseScraper {
     const salaryMax = Math.round(raw.salary_max || salaryMin);
 
     const titleLower = (raw.title || '').toLowerCase();
-    const isInternship = titleLower.includes('intern') || titleLower.includes('fresher') || titleLower.includes('trainee');
+    const isInternship =
+      titleLower.includes('intern') ||
+      titleLower.includes('trainee') ||
+      titleLower.includes('fresher') ||
+      titleLower.includes('graduate');
     const type = isInternship ? 'internship' : 'job';
 
-    const location = raw.location?.display_name || raw.location?.area?.[raw.location.area.length - 1] || 'India';
+    const locationArea = raw.location?.area || [];
+    const city =
+      raw.location?.display_name ||
+      locationArea[locationArea.length - 1] ||
+      'India';
+
+    const descText = raw.description || '';
+    const isRemote = descText.toLowerCase().includes('remote') ||
+      (raw.title || '').toLowerCase().includes('remote');
 
     return {
       external_id: String(raw.id),
@@ -91,8 +135,8 @@ class AdzunaScraper extends BaseScraper {
         logo: '',
         website: '',
       },
-      description: raw.description || '',
-      short_description: (raw.description || '').substring(0, 200),
+      description: descText,
+      short_description: descText.substring(0, 200),
       compensation: {
         min: salaryMin,
         max: salaryMax,
@@ -100,16 +144,13 @@ class AdzunaScraper extends BaseScraper {
         type: 'monthly',
         is_paid: salaryMin > 0,
       },
-      locations: [
-        {
-          city: location,
-          state: '',
-          country: 'India',
-          is_remote: (raw.title + ' ' + (raw.description || '')).toLowerCase().includes('remote'),
-        },
-      ],
+      locations: [{ city, state: '', country: 'India', is_remote: isRemote }],
       skills: raw.category?.label ? [raw.category.label] : [],
-      experience: { min: 0, max: 3, level: isInternship ? 'fresher' : 'intermediate' },
+      experience: {
+        min: 0,
+        max: isInternship ? 1 : 3,
+        level: isInternship ? 'fresher' : 'intermediate',
+      },
       employment_type: isInternship ? 'internship' : 'full-time',
       duration: { value: isInternship ? 6 : 0, unit: 'months' },
       application: {
