@@ -25,6 +25,12 @@ const initializeSupabase = async () => {
     // Auth client — uses anon key so supabase.auth.getUser(token) works correctly.
     const supabaseAuth = createClient(supabaseUrl, anonKey);
 
+    // Expose Adzuna keys to process.env so scrapers can read them
+    const adzunaAppId = supabaseSecrets.secrets.find((s) => s.secretKey === 'adzunaAppId')?.secretValue;
+    const adzunaAppKey = supabaseSecrets.secrets.find((s) => s.secretKey === 'adzunaAppKey')?.secretValue;
+    if (adzunaAppId) process.env.ADZUNA_APP_ID = adzunaAppId;
+    if (adzunaAppKey) process.env.ADZUNA_APP_KEY = adzunaAppKey;
+
     console.log('after supabase - Successfully connected');
     return { supabase, supabaseAuth };
   } catch (err) {

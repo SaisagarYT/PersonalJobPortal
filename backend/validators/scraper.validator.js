@@ -1,11 +1,10 @@
 import { z } from 'zod';
 
-// Schema for multi-source scraping
 const multiSourceScrapeSchema = z.object({
   sources: z
-    .array(z.enum(['unstop', 'internshala', 'apna', 'linkedin']))
+    .array(z.enum(['unstop', 'adzuna']))
     .optional()
-    .default(['unstop', 'internshala', 'apna']),
+    .default(['unstop', 'adzuna']),
   type: z.enum(['job', 'internship', 'competition']).optional(),
   location: z.string().optional().default(''),
   skills: z.array(z.string()).optional().default([]),
@@ -17,7 +16,6 @@ const multiSourceScrapeSchema = z.object({
   sort_by: z.enum(['posted_date', 'salary', 'applicants']).optional().default('posted_date'),
 });
 
-// Schema for single source scraping
 const singleSourceScrapeSchema = z.object({
   type: z
     .enum(['job', 'jobs', 'internship', 'internships', 'competition', 'competitions'])

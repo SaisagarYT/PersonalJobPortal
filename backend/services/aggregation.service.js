@@ -6,7 +6,7 @@ class AggregationService {
    * @param {Array} sources - Array of source names ['unstop', 'internshala']
    * @param {Object} filters - Common filters to apply
    */
-  async scrapeAndAggregate(sources = ['unstop', 'internshala'], filters = {}) {
+  async scrapeAndAggregate(sources = ['unstop', 'adzuna'], filters = {}) {
     const errors = [];
 
     // Scrape from each source in parallel

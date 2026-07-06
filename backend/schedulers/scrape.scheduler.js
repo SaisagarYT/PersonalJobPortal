@@ -2,7 +2,7 @@ import cron from 'node-cron';
 import aggregationService from '../services/aggregation.service.js';
 import opportunityService from '../services/opportunity.service.js';
 
-const SOURCES = ['unstop', 'internshala', 'apna'];
+const SOURCES = ['unstop', 'adzuna'];
 
 // Track state so the health endpoint can report it
 const state = {

@@ -8,7 +8,7 @@ import opportunityService from '../services/opportunity.service.js';
 const scrapeMultiSource = async (req, res, next) => {
   try {
     const {
-      sources = ['unstop', 'internshala', 'apna'],
+      sources = ['unstop', 'adzuna'],
       type,
       location = '',
       skills = [],
