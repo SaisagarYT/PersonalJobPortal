@@ -49,6 +49,7 @@ class Opportunity {
   final String applyUrl;
   final String? postedDate;
   final String fetchedAt;
+  final String? lastUpdated;
 
   const Opportunity({
     required this.id,
@@ -77,6 +78,7 @@ class Opportunity {
     required this.applyUrl,
     this.postedDate,
     required this.fetchedAt,
+    this.lastUpdated,
   });
 
   /// Parses the flat row shape returned by wishlist/application join queries
@@ -171,7 +173,20 @@ class Opportunity {
       applyUrl: application?['apply_url']?.toString() ?? json['apply_url']?.toString() ?? '',
       postedDate: json['posted_date']?.toString(),
       fetchedAt: json['fetched_at']?.toString() ?? '',
+      lastUpdated: json['last_updated']?.toString(),
     );
+  }
+
+  /// Format any ISO date string to "5 Jul 2026" or "—" if null
+  static String fmtDate(String? iso) {
+    if (iso == null || iso.isEmpty) return '—';
+    try {
+      final d = DateTime.parse(iso).toLocal();
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return '${d.day} ${months[d.month - 1]} ${d.year}';
+    } catch (_) {
+      return '—';
+    }
   }
 
   String get salaryDisplay {

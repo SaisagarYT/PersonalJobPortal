@@ -108,11 +108,94 @@ class JobDetailScreen extends StatelessWidget {
                   child: Text(s, style: AppTextStyles.labelMedium.copyWith(color: AppColors.navy)),
                 )).toList(),
               ),
-              const SizedBox(height: 80),
+              const SizedBox(height: 20),
             ],
+
+            // Timeline section
+            Text('Timeline', style: AppTextStyles.h3),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                children: [
+                  _timelineRow(
+                    icon: Icons.calendar_today_outlined,
+                    label: 'Posted Date',
+                    value: Opportunity.fmtDate(o.postedDate),
+                    color: AppColors.navy,
+                  ),
+                  const Divider(height: 16),
+                  _timelineRow(
+                    icon: Icons.download_outlined,
+                    label: 'Scraped Date',
+                    value: Opportunity.fmtDate(o.fetchedAt),
+                    color: AppColors.grey600,
+                  ),
+                  if (o.deadline != null && o.deadline!.isNotEmpty) ...[
+                    const Divider(height: 16),
+                    _timelineRow(
+                      icon: Icons.event_busy_outlined,
+                      label: 'Application Deadline',
+                      value: Opportunity.fmtDate(o.deadline),
+                      color: AppColors.red,
+                    ),
+                  ],
+                  const Divider(height: 16),
+                  _timelineRow(
+                    icon: Icons.update_outlined,
+                    label: 'Last Updated',
+                    value: Opportunity.fmtDate(o.lastUpdated),
+                    color: AppColors.grey600,
+                    isLast: true,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 80),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _timelineRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+    bool isLast = false,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: color.withAlpha(20),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 16, color: color),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey400, fontSize: 11)),
+              const SizedBox(height: 2),
+              Text(value,
+                  style: AppTextStyles.labelMedium.copyWith(
+                      color: value == '—' ? AppColors.grey400 : color)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

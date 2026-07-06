@@ -168,6 +168,36 @@ class OpportunityCard extends StatelessWidget {
                 )).toList(),
               ),
             ],
+            const SizedBox(height: 10),
+            const Divider(height: 1),
+            const SizedBox(height: 8),
+            // Date row: posted · scraped · ends
+            Row(
+              children: [
+                _dateChip(
+                  Icons.calendar_today_outlined,
+                  'Posted',
+                  Opportunity.fmtDate(o.postedDate),
+                  AppColors.navy,
+                ),
+                const SizedBox(width: 8),
+                _dateChip(
+                  Icons.download_outlined,
+                  'Scraped',
+                  Opportunity.fmtDate(o.fetchedAt),
+                  AppColors.grey600,
+                ),
+                if (o.deadline != null && o.deadline!.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  _dateChip(
+                    Icons.event_busy_outlined,
+                    'Ends',
+                    Opportunity.fmtDate(o.deadline),
+                    AppColors.red,
+                  ),
+                ],
+              ],
+            ),
           ],
         ),
       ),
@@ -184,6 +214,32 @@ class OpportunityCard extends StatelessWidget {
           fontWeight: FontWeight.w600,
           color: AppColors.grey600,
         ),
+      ),
+    );
+  }
+
+  Widget _dateChip(IconData icon, String label, String value, Color color) {
+    return Expanded(
+      child: Row(
+        children: [
+          Icon(icon, size: 11, color: color),
+          const SizedBox(width: 3),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: AppTextStyles.bodySmall
+                        .copyWith(fontSize: 9, color: AppColors.grey400)),
+                Text(value,
+                    style: AppTextStyles.bodySmall
+                        .copyWith(fontSize: 10, color: color, fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
