@@ -13,10 +13,13 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
   String? _activeType;
   String? _activeSource;
 
+  String? _activeSearch;
+
   FeedBloc() : super(FeedInitial()) {
     on<FeedLoadRequested>(_onLoad);
     on<FeedLoadMore>(_onLoadMore);
     on<FeedFilterChanged>(_onFilter);
+    on<FeedSearchChanged>(_onSearch);
   }
 
   Future<void> _onLoad(FeedLoadRequested event, Emitter<FeedState> emit) async {
@@ -37,6 +40,12 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     await _fetch(emit, page: 1, reset: true);
   }
 
+  Future<void> _onSearch(FeedSearchChanged event, Emitter<FeedState> emit) async {
+    _activeSearch = event.query.trim().isEmpty ? null : event.query.trim();
+    emit(FeedLoading());
+    await _fetch(emit, page: 1, reset: true);
+  }
+
   Future<void> _fetch(Emitter<FeedState> emit, {required int page, required bool reset}) async {
     try {
       final params = <String, dynamic>{
@@ -45,6 +54,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       };
       if (_activeType != null) params['type'] = _activeType;
       if (_activeSource != null) params['source'] = _activeSource;
+      if (_activeSearch != null) params['search'] = _activeSearch;
 
       final resp = await _api.dio.get('/opportunities', queryParameters: params);
       final body = resp.data;
