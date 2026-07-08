@@ -70,10 +70,15 @@ class UnstopScraper extends BaseScraper {
 
       // Run all combos in parallel (12 tasks)
       const results = await Promise.all(
-        tasks.map(({ type, role }) => this._fetchAllPages(type, role))
+        tasks.map(({ type, role }) =>
+          this._fetchAllPages(type, role).then((items) =>
+            // Tag each item with the API type it came from before dedup
+            items.map((item) => ({ ...item, _requestedType: type }))
+          )
+        )
       );
 
-      // Flatten and deduplicate by id
+      // Flatten and deduplicate by id — first occurrence wins (preserves type tag)
       const seen = new Set();
       const unique = [];
       for (const batch of results) {
@@ -101,12 +106,18 @@ class UnstopScraper extends BaseScraper {
   }
 
   adaptToUnifiedModel(rawData) {
-    // Infer type from which Unstop category this belongs to
+    // Use the API type tag set during fetch — most reliable source of truth
+    const requestedType = rawData._requestedType || '';
     const title = (rawData.title || '').toLowerCase();
+
     let type = 'job';
-    if (rawData.opportunity_type === 'competition' || title.includes('hackathon') || title.includes('competition')) {
+    if (requestedType === 'competitions' || requestedType === 'competition') {
       type = 'competition';
-    } else if (rawData.opportunity_type === 'internship' || rawData.jobDetail?.type === 'internship') {
+    } else if (requestedType === 'internships' || requestedType === 'internship') {
+      type = 'internship';
+    } else if (title.includes('hackathon') || title.includes('competition') || rawData.opportunity_type === 'competition') {
+      type = 'competition';
+    } else if (title.includes('intern') || rawData.opportunity_type === 'internship') {
       type = 'internship';
     }
 
